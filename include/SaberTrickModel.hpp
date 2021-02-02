@@ -52,7 +52,7 @@ class SaberTrickModel {
             TrickModel = UnityEngine::Object::Instantiate(SaberModel);
             CRASH_UNLESS(TrickModel);
             TrickModel->set_name(il2cpp_utils::createcsstr(
-                    saberPrefix + to_utf8(csstrtostr(SaberModel->get_name()))
+                    saberPrefix + to_utf8(csstrtostr(SaberModel->get_name())) + "_" + ((int) saber->saberType->saberType)
                     ));
             getLogger().debug("Trick model name: %s", to_utf8(csstrtostr(TrickModel->get_name())).c_str());
             FixBasicTrickSaber(TrickModel, basicSaber);
