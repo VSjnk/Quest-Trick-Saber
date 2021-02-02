@@ -592,13 +592,27 @@ void TrickManager::CheckButtons() {
     if (false && replayMode && (strcmp(replayMode, "true") == 0)) return;
 
     float power;
-    if ((_throwState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Throw], power)) {
+
+    auto throwDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Throw], power);
+    auto throwUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Throw]);
+    auto spinDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Spin], power);
+    auto spinUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Spin]);
+
+    // Make the sabers return to original state.
+    if (getPluginConfig().NoTricksWhileNotes.GetValue() && objectCount > 2) {
+        throwDown = false;
+        throwUp = true;
+        spinDown = false;
+        spinUp = true;
+    }
+
+    if ((_throwState != Ending) && throwDown) {
         ThrowStart();
-    } else if ((_throwState == Started) && CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Throw])) {
+    } else if ((_throwState == Started) && throwUp) {
         ThrowReturn();
-    } else if ((_spinState != Ending) && CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Spin], power)) {
+    } else if ((_spinState != Ending) && spinDown) {
         InPlaceRotation(power);
-    } else if ((_spinState == Started) && CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Spin])) {
+    } else if ((_spinState == Started) && spinUp) {
         InPlaceRotationReturn();
     }
 }

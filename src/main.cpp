@@ -95,6 +95,8 @@ MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, GlobalNamespace::GameSc
         bs_utils::Submission::enable(modInfo);
     }
 
+    objectCount = 0;
+
     getLogger().debug("Leaving GameScenesManager_PushScenes");
 }
 
@@ -239,6 +241,35 @@ MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* s
     }
 }
 
+
+MAKE_HOOK_OFFSETLESS(SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData, float cutDirectionAngleOffset) {
+
+    objectCount++;
+
+    SpawnNote(self, noteData, cutDirectionAngleOffset);
+}
+
+MAKE_HOOK_OFFSETLESS(SpawnBomb, void, Il2CppObject* self, Il2CppObject* noteData) {
+
+    objectCount++;
+
+    SpawnBomb(self, noteData);
+}
+
+MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteController, Il2CppObject* noteCutInfo) {
+
+    objectCount--;
+
+    NoteCut(self, noteController, noteCutInfo);
+}
+
+MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteController) {
+    objectCount--;
+
+    NoteMissed(self, noteController);
+}
+
+
 void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling){
     getLogger().info("DidActivate: %p, %d, %d, %d", self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
@@ -269,6 +300,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseThumbstick)->get_gameObject(),"Inverts the thumbstick direction.");
 
         BeatSaberUI::CreateText(boolGrid->get_transform(), "Preferences.", false);
+        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().NoTricksWhileNotes)->get_gameObject(),"Doesn't allow tricks while notes are on screen");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().VibrateOnReturn)->get_gameObject(),"Makes the controller vibrate when it returns from being thrown");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().IsVelocityDependent)->get_gameObject(),"Makes the spin speed velocity dependent.");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().EnableTrickCutting)->get_gameObject(),"Allows for physics to apply with the tricks. DOES NOT WORK AND IS VERY BROKEN.");
@@ -346,6 +378,12 @@ extern "C" void load() {
 //    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Disable, il2cpp_utils::FindMethod("", "SaberClashEffect", "OnDisable"));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethod("", "VRController", "Update"));
+
+
+    INSTALL_HOOK_OFFSETLESS(logger().get(), SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBasicNote", 2));
+    INSTALL_HOOK_OFFSETLESS(logger().get(), SpawnBomb, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBombNote", 1));
+    INSTALL_HOOK_OFFSETLESS(logger().get(), NoteMissed, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasMissed", 1));
+    INSTALL_HOOK_OFFSETLESS(logger().get(), NoteCut, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasCut", 2));
 
 //    INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethodUnsafe("", "GameSongController", "StartSong", 1));
 

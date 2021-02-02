@@ -18,6 +18,7 @@ DECLARE_VALUE(ButtonOneAction, int, "ButtonOneAction",(int) TrickAction::None);
 DECLARE_VALUE(ButtonTwoAction, int, "ButtonTwoAction", (int) TrickAction::None);
 
 DECLARE_VALUE(VibrateOnReturn, bool, "VibrateOnReturn", true);
+DECLARE_VALUE(NoTricksWhileNotes, bool, "NoTricksWhileNotes", false);
 DECLARE_VALUE(ReverseTrigger, bool, "ReverseTrigger", false);
 DECLARE_VALUE(ReverseGrip, bool, "ReverseGrip", false);
 DECLARE_VALUE(ReverseThumbstick, bool, "ReverseThumbstick", false);
