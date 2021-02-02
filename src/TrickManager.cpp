@@ -589,7 +589,7 @@ void TrickManager::CheckButtons() {
 //    getLogger().debug("replay mode val: %s", replayMode);
 
     // TODO: Remove false condition here when replay fixes bug
-    if (false && replayMode && (strcmp(replayMode, "true") == 0)) return;
+    if (replayMode && (strcmp(replayMode, "true") == 0)) return;
 
     float power;
 
