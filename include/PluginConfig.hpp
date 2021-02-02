@@ -57,6 +57,7 @@ DECLARE_VALUE(SlowmoStepAmount, float, "SlowmoStepAmount", 0.02f);
         INIT_VALUE(TriggerAction);
 
         INIT_VALUE(VibrateOnReturn);
+        INIT_VALUE(NoTricksWhileNotes);
         INIT_VALUE(GripAction);
         INIT_VALUE(ThumbstickAction);
         INIT_VALUE(ButtonOneAction);

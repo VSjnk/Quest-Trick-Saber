@@ -58,6 +58,8 @@ extern "C" void setup(ModInfo& info) {
     modInfo      = info;
     getConfig().Load();
     getPluginConfig().Init(info);
+    getConfig().Reload();
+    getConfig().Write();
 
     getLogger().info("Leaving setup!");
 }
@@ -243,28 +245,33 @@ MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* s
 
 
 MAKE_HOOK_OFFSETLESS(SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData, float cutDirectionAngleOffset) {
-
     objectCount++;
+    getLogger().debug("Object count note increase %d", objectCount);
 
     SpawnNote(self, noteData, cutDirectionAngleOffset);
 }
 
 MAKE_HOOK_OFFSETLESS(SpawnBomb, void, Il2CppObject* self, Il2CppObject* noteData) {
-
     objectCount++;
+    getLogger().debug("Object count bomb increase %d", objectCount);
 
     SpawnBomb(self, noteData);
 }
 
 MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteController, Il2CppObject* noteCutInfo) {
-
     objectCount--;
+    getLogger().debug("Object count note cut decrease %d", objectCount);
+
+    if (objectCount < 0) objectCount = 0;
 
     NoteCut(self, noteController, noteCutInfo);
 }
 
 MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteController) {
     objectCount--;
+    getLogger().debug("Object count decrease %d", objectCount);
+
+    if (objectCount < 0) objectCount = 0;
 
     NoteMissed(self, noteController);
 }
@@ -380,10 +387,10 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethod("", "VRController", "Update"));
 
 
-    INSTALL_HOOK_OFFSETLESS(getLogger().get(), SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBasicNote", 2));
-    INSTALL_HOOK_OFFSETLESS(getLogger().get(), SpawnBomb, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBombNote", 1));
-    INSTALL_HOOK_OFFSETLESS(getLogger().get(), NoteMissed, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasMissed", 1));
-    INSTALL_HOOK_OFFSETLESS(getLogger().get(), NoteCut, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasCut", 2));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBasicNote", 2));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), SpawnBomb, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBombNote", 1));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteMissed, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasMissed", 1));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteCut, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasCut", 2));
 
 //    INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethodUnsafe("", "GameSongController", "StartSong", 1));
 

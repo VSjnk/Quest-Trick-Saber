@@ -7,7 +7,7 @@
 #include "GlobalNamespace/SaberClashChecker.hpp"
 #include "GlobalNamespace/SaberManager.hpp"
 
-
+inline int objectCount = 0;
 
 #include "questui/shared/QuestUI.hpp"
 #include "questui/shared/BeatSaberUI.hpp"
@@ -30,6 +30,5 @@ void EnableBurnMarks(int saberType);
 #include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
 
 // Define these functions here so that we can easily read configuration and log information from other files
-int objectCount = 0;
 Configuration &getConfig();
 Logger &getLogger();
