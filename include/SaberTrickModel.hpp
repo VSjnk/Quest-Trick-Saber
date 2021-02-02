@@ -23,6 +23,9 @@
 #include "GlobalNamespace/SaberMovementData.hpp"
 #include "System/Collections/Generic/List_1.hpp"
 #include "SaberTrickTrail.hpp"
+#include <string>
+
+static const std::string saberPrefix = "trick_saber_";
 
 class SaberTrickModel {
   public:
@@ -30,7 +33,6 @@ class SaberTrickModel {
     UnityEngine::GameObject* SaberGO;  // GameObject
     GlobalNamespace::Saber* saberScript;
     bool basicSaber;
-    const std::string saberPrefix = "trick_saber_";
 
     SaberTrickModel(GlobalNamespace::Saber* saber, UnityEngine::GameObject* SaberModel, bool basicSaber) {
         CRASH_UNLESS(SaberModel);
@@ -52,7 +54,7 @@ class SaberTrickModel {
             TrickModel = UnityEngine::Object::Instantiate(SaberModel);
             CRASH_UNLESS(TrickModel);
             TrickModel->set_name(il2cpp_utils::createcsstr(
-                    saberPrefix + to_utf8(csstrtostr(SaberModel->get_name())) + "_" + ((int) saber->saberType->saberType)
+                    saberPrefix + to_utf8(csstrtostr(SaberModel->get_name())) + "_" + std::to_string((int) saber->saberType->saberType)
                     ));
             getLogger().debug("Trick model name: %s", to_utf8(csstrtostr(TrickModel->get_name())).c_str());
             FixBasicTrickSaber(TrickModel, basicSaber);
