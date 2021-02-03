@@ -8,6 +8,7 @@
 #include "UnityEngine/Space.hpp"
 #include "UnityEngine/AudioSource.hpp"
 #include "main.hpp"
+#include <string>
 
 // Define static fields
 constexpr UnityEngine::Space RotateSpace = UnityEngine::Space::Self;
@@ -311,8 +312,8 @@ void TrickManager::StaticClear() {
 }
 
 void TrickManager::Clear() {
-    _throwState = Inactive;
-    _spinState = Inactive;
+    setSpinState(Inactive);
+    setThrowState(Inactive);
     _saberTrickModel = nullptr;
     _originalSaberModelT = nullptr;
 }
@@ -348,6 +349,10 @@ void TrickManager::Start() {
     _saberName = Saber->get_name();
     getLogger().debug("saberName: %s", to_utf8(csstrtostr(_saberName)).c_str());
     _basicSaberName = il2cpp_utils::createcsstr("BasicSaberModel(Clone)");
+
+    getLogger().debug("Setting states to inactive due to start");
+    setThrowState(Inactive);
+    setSpinState(Inactive);
 
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         if (!VRController_get_transform) {
@@ -582,6 +587,17 @@ bool CheckHandlersUp(decltype(ButtonMapping::actionHandlers)::mapped_type& handl
     return false;
 }
 
+static std::string actionToString(TrickState state) {
+    switch (state) {
+        case Inactive:
+            return "INACTIVE";
+        case Started:
+            return "STARTED";
+        case Ending:
+            return "ENDING";
+    }
+}
+
 void TrickManager::CheckButtons() {
     // Disable tricks while viewing replays.
     auto* replayMode = getenv("ViewingReplay");
@@ -766,7 +782,8 @@ void TrickManager::ThrowStart() {
 
         DisableBurnMarks(_isLeftSaber ? 0 : 1);
 
-        _throwState = Started;
+        getLogger().debug("Throw state set");
+        setThrowState(Started);
 
         if (getPluginConfig().SlowmoDuringThrow.GetValue()) {
             if (!audioTimeSyncController) {
@@ -810,7 +827,7 @@ void TrickManager::ThrowReturn() {
         getLogger().debug("%s throw return!", _isLeftSaber ? "Left" : "Right");
 
         _saberTrickModel->Rigidbody->set_velocity(Vector3_Zero);
-        _throwState = Ending;
+        setThrowState(Ending);
 
         UnityEngine::Vector3 saberPos = _saberTrickModel->Rigidbody->get_position();
         _throwReturnDirection = Vector3_Subtract(_controllerPosition, saberPos);
@@ -870,7 +887,7 @@ void TrickManager::ThrowEnd() {
         ForceEndSlowmo();
     }
     EnableBurnMarks(_isLeftSaber ? 0 : 1);
-    _throwState = Inactive;
+    setThrowState(Inactive);
 
     UnityEngine::XR::XRNode node;
     if (_isLeftSaber) {
@@ -907,13 +924,13 @@ void TrickManager::InPlaceRotationStart() {
         _spinSpeed = speed;
     }
     _spinSpeed *= getPluginConfig().SpinSpeed.GetValue();
-    _spinState = Started;
+    setSpinState(Started);
 }
 
 void TrickManager::InPlaceRotationReturn() {
     if (_spinState == Started) {
         getLogger().debug("%s spin return!", _isLeftSaber ? "Left" : "Right");
-        _spinState = Ending;
+        setSpinState(Ending);
         // where the PC mod would start a coroutine here, we'll wind the spin down starting in next TrickManager::Update
         // so just to maintain the movement: (+ restore the rotation that was reset by VRController.Update iff TrickCutting)
         _InPlaceRotate(_finalSpinSpeed);
@@ -928,7 +945,7 @@ void TrickManager::InPlaceRotationEnd() {
     }
 
     getLogger().debug("%s spin end!", _isLeftSaber ? "Left" : "Right");
-    _spinState = Inactive;
+    setSpinState(Inactive);
     TrickEnd();
 }
 
@@ -954,4 +971,22 @@ void TrickManager::InPlaceRotation(float power) {
         _finalSpinSpeed = _spinSpeed * pow(power, 3.0f);  // power is the degree to which the held buttons are pressed
     }
     _InPlaceRotate(_finalSpinSpeed);
+}
+
+void TrickManager::setThrowState(TrickState state) {
+    _throwState = state;
+
+    std::string envName = "trick_state_saber_throw" + std::to_string(Saber->saberType->saberType);
+    std::string stateStr = actionToString(_throwState);
+
+    setenv(envName.c_str(), stateStr.c_str(), true);
+}
+
+void TrickManager::setSpinState(TrickState state) {
+    _spinState = state;
+
+    std::string envName = "trick_state_saber_spin" + std::to_string(Saber->saberType->saberType);
+    std::string stateStr = actionToString(_throwState);
+
+    setenv(envName.c_str(), stateStr.c_str(), true);
 }
