@@ -976,7 +976,7 @@ void TrickManager::InPlaceRotation(float power) {
 void TrickManager::setThrowState(TrickState state) {
     _throwState = state;
 
-    std::string envName = "trick_state_saber_throw" + std::to_string(Saber->saberType->saberType);
+    std::string envName = "trick_state_saber_throw" + std::to_string(_isLeftSaber ? 0 : 1);
     std::string stateStr = actionToString(_throwState);
 
     setenv(envName.c_str(), stateStr.c_str(), true);
@@ -985,7 +985,7 @@ void TrickManager::setThrowState(TrickState state) {
 void TrickManager::setSpinState(TrickState state) {
     _spinState = state;
 
-    std::string envName = "trick_state_saber_spin" + std::to_string(Saber->saberType->saberType);
+    std::string envName = "trick_state_saber_spin" + std::to_string(_isLeftSaber ? 0 : 1);
     std::string stateStr = actionToString(_throwState);
 
     setenv(envName.c_str(), stateStr.c_str(), true);
