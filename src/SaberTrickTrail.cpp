@@ -59,7 +59,7 @@ namespace TrickSaber {
             this->saberTrail->movementData = reinterpret_cast<GlobalNamespace::IBladeMovementData*>(this->customMovementData);
         }
 
-        getLogger().debug("Trick trail add data");
+//        getLogger().debug("Trick trail add data");
         this->customMovementData->AddNewData(topPos, bottomPos, GlobalNamespace::TimeHelper::get_time());
     }
 }
