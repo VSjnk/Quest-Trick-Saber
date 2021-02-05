@@ -647,7 +647,7 @@ void TrickManager::TrickEnd() {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         VRController->set_enabled(true);
     } else if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
-        doClashEffect = true;
+        this->doClashEffect = true;
     }
 }
 
