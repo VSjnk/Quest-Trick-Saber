@@ -235,7 +235,7 @@ MAKE_HOOK_OFFSETLESS(AudioTimeSyncController_Start, void, AudioTimeSyncControlle
 MAKE_HOOK_OFFSETLESS(SaberClashChecker_AreSabersClashing, bool, SaberClashChecker* self) {
     bool val = SaberClashChecker_AreSabersClashing(self);
 
-    return (rightSaber.doClashEffect && leftSaber.doClashEffect) && val;
+    return (!rightSaber.isDoingTricks() && !leftSaber.isDoingTricks()) && val;
 }
 
 MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* self) {

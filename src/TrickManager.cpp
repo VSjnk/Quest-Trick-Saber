@@ -639,7 +639,7 @@ void TrickManager::TrickStart() {
         // even on throws, we disable this to call Update manually and thus control ordering
         VRController->set_enabled(false);
     } else {
-        this->doClashEffect = false;
+//        this->doClashEffect = false;
     }
 }
 
@@ -647,7 +647,7 @@ void TrickManager::TrickEnd() {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         VRController->set_enabled(true);
     } else if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
-        this->doClashEffect = true;
+//        this->doClashEffect = true;
     }
 }
 
@@ -990,3 +990,8 @@ void TrickManager::setSpinState(TrickState state) {
 
     setenv(envName.c_str(), stateStr.c_str(), true);
 }
+
+bool TrickManager::isDoingTricks() {
+    return _spinState != Inactive || _throwState != Inactive;
+}
+

@@ -52,7 +52,6 @@ struct ButtonMapping {
 class TrickManager {
     public:
         void LogEverything();
-        bool doClashEffect = true;
         bool _isLeftSaber = false;
         GlobalNamespace::Saber* Saber;         // ::Saber
         GlobalNamespace::VRController* VRController;  // ::VRController
@@ -68,6 +67,7 @@ class TrickManager {
 		static void StaticFixedUpdate();
 		void FixedUpdate();
         void Update();
+        bool isDoingTricks();
 
 	protected:
 		TrickState _throwState;  // initialized in Start
