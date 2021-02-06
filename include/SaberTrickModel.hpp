@@ -53,9 +53,10 @@ class SaberTrickModel {
         } else {
             TrickModel = UnityEngine::Object::Instantiate(SaberModel);
             CRASH_UNLESS(TrickModel);
-            TrickModel->set_name(il2cpp_utils::createcsstr(
+            auto* newName = il2cpp_utils::createcsstr(
                     saberPrefix + to_utf8(csstrtostr(SaberModel->get_name())) + "_" + std::to_string((int) saber->saberType->saberType)
-                    ));
+            );
+            UnityEngine::Object::SetName(TrickModel, newName);
             getLogger().debug("Trick model name: %s", to_utf8(csstrtostr(TrickModel->get_name())).c_str());
             FixBasicTrickSaber(TrickModel, basicSaber);
             AddTrickRigidbody();
