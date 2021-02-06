@@ -33,6 +33,9 @@
 
 #define AddConfigValueIncrementEnum(parent, enumConfigValue, enumClass, enumMap) BeatSaberUI::CreateIncrementSetting(parent, enumConfigValue.GetName() + " " + enumMap.at(clamp(0, (int) enumMap.size() - 1, (int) enumConfigValue.GetValue())), 0, 1, (float) clamp(0, (int) enumMap.size() - 1, (int) enumConfigValue.GetValue()), 0,(int) enumMap.size() - 1, il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<float>*>(classof(UnityEngine::Events::UnityAction_1<float>*), (void*)nullptr, +[](float value) { enumConfigValue.SetValue((int)value); }))
 
+#define AddConfigValueDropdownEnum(parent, enumConfigValue, enumClass, enumMap, enumReverseMap) BeatSaberUI::CreateDropdown(parent, enumConfigValue.GetName(), enumReverseMap.at(clamp(0, (int) enumMap.size() - 1, (int) enumConfigValue.GetValue())), getKeys(enumMap), [](const std::string& value) {enumConfigValue.SetValue((int) enumMap.at(value));} )
+
+
 #endif
 
 using namespace GlobalNamespace;
@@ -283,6 +286,15 @@ MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteCon
     NoteMissed(self, noteController);
 }
 
+template <class K, class V>
+std::vector<K> getKeys(std::map<K, V> map) {
+    std::vector<K> vector;
+    for (auto it = map.begin(); it != map.end(); it++) {
+        vector.push_back(it->first);
+    }
+
+    return vector;
+}
 
 void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling){
     getLogger().info("DidActivate: %p, %d, %d, %d", self, firstActivation, addedToHierarchy, screenSystemEnabling);
@@ -299,6 +311,8 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
         BeatSaberUI::CreateText(textGrid->get_transform(), "TrickSaber settings. Restart to avoid crashes or side-effects.");
 
         BeatSaberUI::CreateText(textGrid->get_transform(), "Settings are saved when changed.");
+
+        BeatSaberUI::CreateText(textGrid->get_transform(), "Not all settings have been tested. Please use with caution.");
 
 //        buttonsGrid->set_spacing(1);
 
@@ -347,18 +361,18 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
 //        actionGrid->set_name(il2cpp_utils::createcsstr("Actions"));
 //        actionGrid->set_spacing(1);
 
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().TriggerAction, TrickAction, ACTION_NAMES)->get_gameObject(),"The action the trigger performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().ButtonOneAction, TrickAction, ACTION_NAMES)->get_gameObject(),"The action the button one performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().ButtonTwoAction, TrickAction, ACTION_NAMES)->get_gameObject(),"The action the button two performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().GripAction, TrickAction, ACTION_NAMES)->get_gameObject(),"The action the grip button performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(actionGrid->get_transform(), getPluginConfig().ThumbstickAction, TrickAction, ACTION_NAMES)->get_gameObject(),"The action the thumbstick performs.");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().TriggerAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the trigger performs.");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().ButtonOneAction, TrickAction, ACTION_NAMES,ACTION_REVERSE_NAMES)->get_gameObject(),"The action the button one performs.");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().ButtonTwoAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the button two performs.");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().GripAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the grip button performs.");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().ThumbstickAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the thumbstick performs.");
 
         auto* miscGrid = container;
         BeatSaberUI::CreateText(miscGrid->get_transform(), "Misc", false);
 //        miscGrid->set_spacing(1);
 
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(miscGrid->get_transform(), getPluginConfig().SpinDirection, TrickAction, SPIN_DIR_NAMES)->get_gameObject(),"The direction of spinning. Still dependent on reverse button");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementEnum(miscGrid->get_transform(), getPluginConfig().ThumbstickDirection, TrickAction, THUMBSTICK_DIR_NAMES)->get_gameObject(),"The direction of the thumbsticks for tricks. ");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(miscGrid->get_transform(), getPluginConfig().SpinDirection, TrickAction, SPIN_DIR_NAMES, SPIN_DIR_REVERSE_NAMES)->get_gameObject(),"The direction of spinning. Still dependent on reverse button");
+        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(miscGrid->get_transform(), getPluginConfig().ThumbstickDirection, TrickAction, THUMBSTICK_DIR_NAMES, THUMBSTICK_DIR_REVERSE_NAMES)->get_gameObject(),"The direction of the thumbsticks for tricks. ");
 
     }
 }

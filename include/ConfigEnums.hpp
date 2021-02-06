@@ -5,7 +5,8 @@
 #include <unordered_map>
 #include <map>
 
-typedef std::map<int, std::string> EnumMap;
+typedef std::map<std::string, int> EnumMap;
+typedef std::map<int, std::string> EnumReverseMap;
 
 #define ACTION_ENUM(DO) \
 	DO(Throw) \
@@ -17,9 +18,15 @@ enum class TrickAction {
 	#undef MAKE_ENUM
 };
 inline static const EnumMap ACTION_NAMES {
-	#define MAKE_NAMES(VAR) {(int)TrickAction::VAR, #VAR},
+	#define MAKE_NAMES(VAR) {#VAR, (int)TrickAction::VAR},
 	ACTION_ENUM(MAKE_NAMES)
 	#undef MAKE_NAMES
+};
+
+inline static const EnumReverseMap ACTION_REVERSE_NAMES {
+#define MAKE_NAMES(VAR) {(int)TrickAction::VAR, #VAR},
+        ACTION_ENUM(MAKE_NAMES)
+#undef MAKE_NAMES
 };
 
 #define SPINDIR_ENUM(DO) \
@@ -31,9 +38,15 @@ enum class SpinDir {
 	#undef MAKE_ENUM
 };
 inline static const EnumMap SPIN_DIR_NAMES {
-	#define MAKE_NAMES(VAR) {(int)SpinDir::VAR, #VAR},
+	#define MAKE_NAMES(VAR) {#VAR, (int) SpinDir::VAR},
 	SPINDIR_ENUM(MAKE_NAMES)
 	#undef MAKE_NAMES
+};
+
+inline static const EnumReverseMap SPIN_DIR_REVERSE_NAMES {
+#define MAKE_NAMES(VAR) {(int) SpinDir::VAR, #VAR},
+        SPINDIR_ENUM(MAKE_NAMES)
+#undef MAKE_NAMES
 };
 
 
@@ -46,7 +59,13 @@ enum class ThumbstickDir {
 	#undef MAKE_ENUM
 };
 inline static const EnumMap THUMBSTICK_DIR_NAMES {
-	#define MAKE_NAMES(VAR) {(int)ThumbstickDir::VAR, #VAR},
+	#define MAKE_NAMES(VAR) {#VAR, (int)ThumbstickDir::VAR},
 	THUMBDIR_ENUM(MAKE_NAMES)
 	#undef MAKE_NAMES
+};
+
+inline static const EnumReverseMap THUMBSTICK_DIR_REVERSE_NAMES {
+#define MAKE_NAMES(VAR) {(int)ThumbstickDir::VAR, #VAR},
+        THUMBDIR_ENUM(MAKE_NAMES)
+#undef MAKE_NAMES
 };
