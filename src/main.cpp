@@ -24,6 +24,7 @@
 
 #include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
 #include "bs-utils/shared/utils.hpp"
+#include <chrono>
 
 #include <cstdlib>
 
@@ -207,6 +208,12 @@ void EnableBurnMarks(int saberType) {
     }
 }
 
+int64_t getTimeMillis() {
+    auto time = std::chrono::high_resolution_clock::now();
+
+    return std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count();
+}
+
 
 MAKE_HOOK_OFFSETLESS(FixedUpdate, void, GlobalNamespace::OculusVRHelper* self) {
     FixedUpdate(self);
@@ -269,7 +276,7 @@ MAKE_HOOK_OFFSETLESS(SpawnBomb, void, Il2CppObject* self, Il2CppObject* noteData
 }
 
 MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteController, Il2CppObject* noteCutInfo) {
-    objectCount--;
+    objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count note cut decrease %d", objectCount);
 
     if (objectCount < 0) objectCount = 0;
@@ -278,7 +285,7 @@ MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteContro
 }
 
 MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteController) {
-    objectCount--;
+    objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count decrease %d", objectCount);
 
     if (objectCount < 0) objectCount = 0;

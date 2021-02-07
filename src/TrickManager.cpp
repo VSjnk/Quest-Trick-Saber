@@ -614,8 +614,28 @@ void TrickManager::CheckButtons() {
     auto spinDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Spin], power);
     auto spinUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Spin]);
 
+    if (!objectDestroyTimes.empty()) {
+//        std::vector<int64_t> copyObjectDestroyTimes = objectDestroyTimes;
+        std::vector<std::vector<int64_t>::iterator> iteratorV {};
+        for (auto it = objectDestroyTimes.begin(); it != objectDestroyTimes.end(); it++) {
+            if (!*it) break;
+
+            auto destroyTime = *it;
+
+            if (getTimeMillis() - destroyTime > 700) {
+                objectCount--;
+                if (objectCount < 0) objectCount = 0;
+                iteratorV.push_back(it);
+            }
+        }
+
+        for (auto it : iteratorV) {
+            objectDestroyTimes.erase(it);
+        }
+    }
+
     // Make the sabers return to original state.
-    if (getPluginConfig().NoTricksWhileNotes.GetValue() && objectCount > 2) {
+    if (getPluginConfig().NoTricksWhileNotes.GetValue() && objectCount > 0) {
         throwDown = false;
         throwUp = true;
         spinDown = false;

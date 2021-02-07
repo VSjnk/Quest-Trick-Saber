@@ -7,6 +7,7 @@
 #include "GlobalNamespace/SaberClashChecker.hpp"
 #include "GlobalNamespace/SaberManager.hpp"
 
+inline std::vector<int64_t> objectDestroyTimes;
 inline int objectCount = 0;
 
 #include "questui/shared/QuestUI.hpp"
@@ -19,6 +20,8 @@ static GlobalNamespace::SaberManager *saberManager = nullptr;
 
 void DisableBurnMarks(int saberType);
 void EnableBurnMarks(int saberType);
+
+int64_t getTimeMillis();
 
 // Include the modloader header, which allows us to tell the modloader which mod this is, and the version etc.
 #include "modloader/shared/modloader.hpp"
