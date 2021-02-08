@@ -89,8 +89,8 @@ class TrickManager {
 		void _InPlaceRotate(float amount);
 		void InPlaceRotationReturn();
         void InPlaceRotationEnd();
-		void TrickStart();
-		void TrickEnd();
+		void TrickStart() const;
+		void TrickEnd() const;
 		void AddProbe(const UnityEngine::Vector3& vel, const UnityEngine::Vector3& ang);
         UnityEngine::Vector3 GetAverageVelocity();
         UnityEngine::Vector3 GetAverageAngularVelocity();

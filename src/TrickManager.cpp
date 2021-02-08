@@ -250,7 +250,7 @@ void TrickManager::Start2() {
         if (!saberModelT) {
             getLogger().warning("Did not find custom saber! Thrown sabers will be BasicSaberModel(Clone)!");
             saberModelT = basicSaberT;
-        } else if (Modloader::getMods().contains("Qosmetics")) {
+        } else if (getenv("qsabersenabled")) {
             getLogger().debug("Not moving trail because Qosmetics is installed!");
         } else {
             getLogger().debug("Found '%s'!", to_utf8(csstrtostr(_saberName)).c_str());
@@ -654,7 +654,7 @@ void TrickManager::CheckButtons() {
 }
 
 
-void TrickManager::TrickStart() {
+void TrickManager::TrickStart() const {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         // even on throws, we disable this to call Update manually and thus control ordering
         VRController->set_enabled(false);
@@ -663,7 +663,7 @@ void TrickManager::TrickStart() {
     }
 }
 
-void TrickManager::TrickEnd() {
+void TrickManager::TrickEnd() const {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         VRController->set_enabled(true);
     } else if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
