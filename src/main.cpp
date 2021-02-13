@@ -338,7 +338,8 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().NoTricksWhileNotes)->get_gameObject(),"Doesn't allow tricks while notes are on screen");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().VibrateOnReturn)->get_gameObject(),"Makes the controller vibrate when it returns from being thrown");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().IsVelocityDependent)->get_gameObject(),"Makes the spin speed velocity dependent.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().EnableTrickCutting)->get_gameObject(),"Allows for physics to apply with the tricks. DOES NOT WORK AND IS VERY BROKEN.");
+        // TODO: Fix or remove
+        //        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().EnableTrickCutting)->get_gameObject(),"Allows for physics to apply with the tricks. DOES NOT WORK AND IS VERY BROKEN.");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().CompleteRotationMode)->get_gameObject(),"Allows for the spin rotation to go all directions.");
         BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().SlowmoDuringThrow)->get_gameObject(),"Makes the thrown saber act slow-mo like.");
 
