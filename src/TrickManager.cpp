@@ -547,7 +547,12 @@ void TrickManager::Update() {
         }
     }
     // TODO: no tricks while paused? https://github.com/ToniMacaroni/TrickSaber/blob/ea60dce35db100743e7ba72a1ffbd24d1472f1aa/TrickSaber/SaberTrickManager.cs#L66
-    CheckButtons();
+    if (audioTimeSyncController == nullptr) {
+        audioTimeSyncController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::AudioTimeSyncController*>();
+    }
+
+    if (audioTimeSyncController != nullptr)
+        CheckButtons();
 }
 
 ValueTuple TrickManager::GetTrackingPos() {
