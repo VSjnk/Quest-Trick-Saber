@@ -448,7 +448,9 @@ void TrickManager::Update() {
         }
     }
     if (_gamePaused) return;
-    // RET_V_UNLESS(il2cpp_utils::GetPropertyValue<bool>(VRController, "enabled").value_or(false));
+
+    if (!VRController->get_enabled())
+        return;
 
     std::optional<UnityEngine::Quaternion> oRot;
     if (_spinState == Ending) {  // not needed for Started because only Rotate and _currentRotation are used
