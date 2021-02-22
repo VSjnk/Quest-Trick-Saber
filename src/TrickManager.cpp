@@ -275,7 +275,7 @@ void TrickManager::Start2() {
                     auto* childT = basicSaberT->GetChild(i);
                     children.push_back(childT);
                 }
-                for (auto* child : children) {
+                for (auto*& child : children) {
                     child->SetParent(saberModelT);
                 }
 
@@ -574,7 +574,6 @@ ValueTuple TrickManager::GetTrackingPos() {
 bool CheckHandlersDown(decltype(ButtonMapping::actionHandlers)::mapped_type& handlers, float& power) {
     power = 0;
     // getLogger().debug("handlers.size(): %lu", handlers.size());
-    CRASH_UNLESS(!handlers.empty());
     if (handlers.empty()) return false;
     for (auto& handler : handlers) {
         float val;
@@ -623,6 +622,7 @@ void TrickManager::CheckButtons() {
 
     if (!objectDestroyTimes.empty()) {
 //        std::vector<int64_t> copyObjectDestroyTimes = objectDestroyTimes;
+        getLogger().debug("Object destroy");
         std::vector<std::vector<int64_t>::iterator> iteratorV {};
         for (auto it = objectDestroyTimes.begin(); it != objectDestroyTimes.end(); it++) {
             if (!*it) break;
@@ -636,9 +636,11 @@ void TrickManager::CheckButtons() {
             }
         }
 
-        for (auto it : iteratorV) {
-            objectDestroyTimes.erase(it);
+        for (auto& it : iteratorV) {
+            if (*it)
+                objectDestroyTimes.erase(it);
         }
+        getLogger().debug("Destroyed objects");
     }
 
     // Make the sabers return to original state.

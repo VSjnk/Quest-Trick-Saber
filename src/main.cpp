@@ -262,33 +262,39 @@ MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* s
 
 
 MAKE_HOOK_OFFSETLESS(SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData, float cutDirectionAngleOffset) {
-    objectCount++;
+    if (getPluginConfig().NoTricksWhileNotes.GetValue())
+        objectCount++;
 //    getLogger().debug("Object count note increase %d", objectCount);
 
     SpawnNote(self, noteData, cutDirectionAngleOffset);
 }
 
 MAKE_HOOK_OFFSETLESS(SpawnBomb, void, Il2CppObject* self, Il2CppObject* noteData) {
-    objectCount++;
+    if (getPluginConfig().NoTricksWhileNotes.GetValue() )
+        objectCount++;
 //    getLogger().debug("Object count bomb increase %d", objectCount);
 
     SpawnBomb(self, noteData);
 }
 
 MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteController, Il2CppObject* noteCutInfo) {
-    objectDestroyTimes.push_back(getTimeMillis());
+    if (getPluginConfig().NoTricksWhileNotes.GetValue() ) {
+        objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count note cut decrease %d", objectCount);
 
-    if (objectCount < 0) objectCount = 0;
+        if (objectCount < 0) objectCount = 0;
+    }
 
     NoteCut(self, noteController, noteCutInfo);
 }
 
 MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteController) {
-    objectDestroyTimes.push_back(getTimeMillis());
+    if (getPluginConfig().NoTricksWhileNotes.GetValue()) {
+        objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count decrease %d", objectCount);
 
-    if (objectCount < 0) objectCount = 0;
+        if (objectCount < 0) objectCount = 0;
+    }
 
     NoteMissed(self, noteController);
 }
