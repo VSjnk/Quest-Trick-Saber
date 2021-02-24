@@ -252,46 +252,6 @@ void TrickManager::Start2() {
             saberModelT = basicSaberT;
         } else if (getenv("qsabersenabled")) {
             getLogger().debug("Not moving trail because Qosmetics is installed!");
-        } else {
-            getLogger().debug("Found '%s'!", to_utf8(csstrtostr(_saberName)).c_str());
-
-            // TODO: remove the rest of this once CustomSabers correctly creates trails and removes/moves the vanilla ones
-            // Now transfer the trail from basicSaber to saberModel (the custom saber)
-            // Find the old trail script
-            static auto* tTrail = CRASH_UNLESS(il2cpp_utils::GetSystemType("Xft", "XWeaponTrail"));
-            auto* trailComponent = basicSaberT->GetComponent(tTrail);
-            if (!trailComponent) {
-                getLogger().warning("trailComponent not found!");
-            } else {
-                // Create a new trail script on the custom saber
-                auto* saberGO = saberModelT->get_gameObject();
-                auto* newTrail = saberGO->AddComponent(tTrail);
-
-                // Relocate the children from the BasicSaberModel(Clone) transfrom to the custom saber transform
-                // Most important children: TrailTop, TrailBottom, PointLight?
-                std::vector<UnityEngine::Transform*> children;
-                int childCount = basicSaberT->get_childCount();
-                for (int i = 0; i < childCount; i++) {
-                    auto* childT = basicSaberT->GetChild(i);
-                    children.push_back(childT);
-                }
-                for (auto*& child : children) {
-                    child->SetParent(saberModelT);
-                }
-
-                // Copy the necessary properties/fields over from old to new trail script
-                Color trailColor = CRASH_UNLESS(il2cpp_utils::GetPropertyValue<Color>(trailComponent, "color"));
-                CRASH_UNLESS(il2cpp_utils::SetPropertyValue(newTrail, "color", trailColor));
-                auto* pointStart = CRASH_UNLESS(il2cpp_utils::GetFieldValue(trailComponent, "_pointStart"));
-                CRASH_UNLESS(il2cpp_utils::SetFieldValue(newTrail, "_pointStart", pointStart));
-                auto* pointEnd = CRASH_UNLESS(il2cpp_utils::GetFieldValue(trailComponent, "_pointEnd"));
-                CRASH_UNLESS(il2cpp_utils::SetFieldValue(newTrail, "_pointEnd", pointEnd));
-                auto* trailPrefab = CRASH_UNLESS(il2cpp_utils::GetFieldValue(trailComponent, "_trailRendererPrefab"));
-                CRASH_UNLESS(il2cpp_utils::SetFieldValue(newTrail, "_trailRendererPrefab", trailPrefab));
-
-                // Destroy the old trail script
-                UnityEngine::Object::Destroy(trailComponent);
-            }
         }
     } else {
         saberModelT = Saber->get_transform();

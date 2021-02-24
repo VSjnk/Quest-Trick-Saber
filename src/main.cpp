@@ -131,20 +131,16 @@ MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
 
     // saber->sabertypeobject->sabertype
     SaberType saberType = self->saberType->saberType;
-    getLogger().debug("SaberType: %i", saberType);
+    getLogger().debug("SaberType: %i", (int) saberType);
 
     auto *vrControllers = UnityEngine::Resources::FindObjectsOfTypeAll<VRController*>();
 
 
     getLogger().info("VR controllers: %i", vrControllers->Length());
 
-    for (int i = 0; i<vrControllers->Length(); i++) {
-        auto* controller = vrControllers->values[i];
-
-    }
 
 
-    if (saberType == 0) {
+    if ((int) saberType == 0) {
         getLogger().debug("Left?");
 //        leftSaber.VRController = vrControllersManager->get_node();
         leftSaber.Saber = self;

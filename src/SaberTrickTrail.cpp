@@ -3,8 +3,6 @@
 #include "UnityEngine/Mathf.hpp"
 #include "GlobalNamespace/TrailElementCollection.hpp"
 #include "GlobalNamespace/TrailElement.hpp"
-#include "GlobalNamespace/ColorManager.hpp"
-#include "GlobalNamespace/SaberType.hpp"
 #include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "UnityEngine/GameObject.hpp"
 #include "SaberTrickTrail.hpp"

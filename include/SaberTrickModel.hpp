@@ -117,7 +117,7 @@ class SaberTrickModel {
 
         GlobalNamespace::SaberTypeObject* _saberTypeObject = saberModelContainer->saber->saberType;
         GlobalNamespace::SaberType saberType = _saberTypeObject->saberType; // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(_saberTypeObject, "saberType"));
-        getLogger().debug("saber type: %i", saberType);
+        getLogger().debug("saber type: %i", (int) saberType);
 //        CRASH_UNLESS(saberType);
         auto* saberModelContainerT = saberModelContainer->get_transform();
         getLogger().debug("saber container");
