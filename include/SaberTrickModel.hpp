@@ -70,6 +70,7 @@ class SaberTrickModel {
 
             trickModelT->SetParent(vrGameCoreT);
             TrickModel->SetActive(false);
+            OriginalSaberModel->SetActive(true);
         }
 
         getLogger().debug("Leaving SaberTrickModel construction!");
@@ -164,8 +165,11 @@ class SaberTrickModel {
 
         if (basicSaber && !Modloader::getMods().contains("Qosmetics")) {
 //                TrickModel->GetComponent<GlobalNamespace::SaberTrail*>()->movementData = reinterpret_cast<GlobalNamespace::IBladeMovementData*>(GlobalNamespace::SaberMovementData::New_ctor());
+            // Fix trails?
+            TrickModel->SetActive(true);
             FixTrails(TrickModel);
             FixTrails(OriginalSaberModel);
+            TrickModel->SetActive(false);
         }
     }
 
@@ -208,7 +212,7 @@ class SaberTrickModel {
                 trail->Init(trailEnd->get_transform(), trailStart->get_transform(), obj);
             }
 
-            obj->set_enabled(false);
+//            obj->set_enabled(false);
 
         }
     }
