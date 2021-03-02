@@ -429,7 +429,8 @@ void TrickManager::Update() {
         VRController->Update(); // sets position and pre-_currentRotation
     }
 
-
+    if (_saberTrickModel)
+        _saberTrickModel->Update();
 
     // Note: if TrickCutting, during throw, these properties are redirected to an unused object
     _controllerPosition = VRController->get_position();

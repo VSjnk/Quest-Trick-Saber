@@ -41,11 +41,19 @@ namespace TrickSaber {
         this->trailRendererPrefab = saberTrail1->trailRendererPrefab;
         this->color = saberTrail1->color;
         this->granularity = saberTrail1->granularity;
+        this->saberTrail = saberTrail1;
 
         print();
     }
 
     void TrickSaberTrailData::Update() {
+        this->trailDuration = saberTrail->trailDuration;
+        this->whiteSectionMaxDuration = saberTrail->whiteSectionMaxDuration;
+        this->trailRenderer = saberTrail->trailRenderer;
+        this->trailRendererPrefab = saberTrail->trailRendererPrefab;
+        this->color = saberTrail->color;
+        this->granularity = saberTrail->granularity;
+
         if (!this->topTransform || !this->bottomTransform) {
             if (this->topTransform == nullptr) {
                 this->topTransform = this->get_transform()->Find(il2cpp_utils::createcsstr("TrailEnd"));

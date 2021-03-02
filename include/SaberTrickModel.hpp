@@ -11,6 +11,8 @@
 #include "UnityEngine/Transform.hpp"
 #include "UnityEngine/Collider.hpp"
 #include "UnityEngine/MeshFilter.hpp"
+#include "UnityEngine/MeshRenderer.hpp"
+#include "UnityEngine/MaterialPropertyBlock.hpp"
 #include "GlobalNamespace/Saber.hpp"
 #include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "GlobalNamespace/SaberType.hpp"
@@ -21,6 +23,14 @@
 #include "GlobalNamespace/SaberModelController.hpp"
 #include "GlobalNamespace/SaberTrail.hpp"
 #include "GlobalNamespace/SaberMovementData.hpp"
+#include "GlobalNamespace/TubeBloomPrePassLight.hpp"
+#include "GlobalNamespace/SaberModelController_InitData.hpp"
+#include "GlobalNamespace/SetSaberGlowColor_PropertyTintColorPair.hpp"
+#include "GlobalNamespace/Parametric3SliceSpriteController.hpp"
+#include "GlobalNamespace/SaberManager.hpp"
+#include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
+#include "GlobalNamespace/ColorManager.hpp"
+
 #include "System/Collections/Generic/List_1.hpp"
 #include "SaberTrickTrail.hpp"
 #include <string>
@@ -31,8 +41,10 @@ class SaberTrickModel {
   public:
     UnityEngine::Rigidbody* Rigidbody = nullptr;
     UnityEngine::GameObject* SaberGO;  // GameObject
+    GlobalNamespace::ColorManager* colorManager;
     GlobalNamespace::Saber* saberScript;
     bool basicSaber;
+    int update;
 
     SaberTrickModel(GlobalNamespace::Saber* saber, UnityEngine::GameObject* SaberModel, bool basicSaber) {
         CRASH_UNLESS(SaberModel);
@@ -240,6 +252,92 @@ class SaberTrickModel {
         TrickModel->SetActive(false);
 
         SaberGO = OriginalSaberModel;
+    }
+
+    // Sira utils methods
+    void OverrideColor(GlobalNamespace::SetSaberGlowColor* ssgc, UnityEngine::Color color) {
+        UnityEngine::MeshRenderer* mesh = ssgc->meshRenderer;
+        UnityEngine::MaterialPropertyBlock* block = ssgc->materialPropertyBlock;
+        Array<GlobalNamespace::SetSaberGlowColor::PropertyTintColorPair *> *tintPairs = ssgc->propertyTintColorPairs;
+        if (block == nullptr)
+        {
+            block = new UnityEngine::MaterialPropertyBlock();
+        }
+        for (int i = 0; i < tintPairs->Length(); i++)
+        {
+            GlobalNamespace::SetSaberGlowColor::PropertyTintColorPair *ptcp = tintPairs->values[i];
+            block->SetColor(ptcp->property, color * ptcp->tintColor);
+        }
+        mesh->SetPropertyBlock(block);
+    }
+
+    void OverrideColor(GlobalNamespace::SetSaberFakeGlowColor* ssfgc, UnityEngine::Color color) {
+        GlobalNamespace::Parametric3SliceSpriteController* sliceSpriteController = ssfgc->parametric3SliceSprite;
+        sliceSpriteController->color = color * ssfgc->tintColor;
+        sliceSpriteController->Refresh();
+    }
+
+
+
+    void ChangeColorCoroutine2(UnityEngine::Color color) {
+        getLogger().debug("Coloring saber model %d", (int) saberScript->get_saberType());
+
+        auto *modelController = TrickModel->GetComponentInChildren<GlobalNamespace::SaberModelController *>(true);
+
+
+//        if (modelController is IColorable colorable)
+//        {
+//            colorable.SetColor(color);
+//        }
+
+        auto tintColor = modelController->initData->trailTintColor;
+        Array<GlobalNamespace::SetSaberGlowColor *> *setSaberGlowColors = modelController->setSaberGlowColors;
+        Array<GlobalNamespace::SetSaberFakeGlowColor *> *setSaberFakeGlowColors = modelController->setSaberFakeGlowColors;
+
+        modelController->saberTrail->color = (color * tintColor).get_linear();
+
+        for (int i = 0; i != setSaberGlowColors->Length(); i++) {
+            OverrideColor(setSaberGlowColors->values[i], color);
+        }
+        for (int i = 0; i < setSaberFakeGlowColors->Length(); i++) {
+            OverrideColor(setSaberFakeGlowColors->values[i], color);
+        }
+
+        GlobalNamespace::TubeBloomPrePassLight *saberLight = modelController->saberLight;
+
+
+        if (saberLight) {
+            saberLight->color = color;
+        } else {
+            getLogger().debug("Saber light is null, should be normal right?");
+        }
+    }
+
+    // Update every 5th frame
+    void Update() {
+        if (!Modloader::getMods().contains("Chroma")) return;
+
+        if (TrickModel->get_activeSelf()) {
+
+            update++;
+            if (update == 5)
+                update = 0;
+
+            if (update == 0) {
+                if (colorManager == nullptr)
+                    colorManager = saberScript->GetComponentInChildren<GlobalNamespace::ColorManager *>();
+
+                std::string findEnv = &"Chroma_colorSaber" [(int) saberScript->get_saberType()];
+
+                auto result = getenv(findEnv.c_str());
+
+                getLogger().debug("Got the result %s", result);
+
+                if (result && strcmp(result, "true") == 0 && colorManager != nullptr) {
+                    ChangeColorCoroutine2(colorManager->ColorForSaberType(saberScript->get_saberType()));
+                }
+            }
+        } else update = 0;
     }
 
   private:
