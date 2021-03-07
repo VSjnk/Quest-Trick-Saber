@@ -45,6 +45,16 @@
       "id": "config-utils",
       "versionRange": "*",
       "additionalData": {}
+    },
+    {
+      "id": "conditional-dependencies",
+      "versionRange": "*",
+      "additionalData": {}
+    },
+    {
+      "id": "chroma",
+      "versionRange": "*",
+      "additionalData": {}
     }
   ],
   "additionalData": {}

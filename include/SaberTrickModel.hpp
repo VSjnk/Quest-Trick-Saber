@@ -31,6 +31,8 @@
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ColorManager.hpp"
 
+#include "chroma/shared/SaberAPI.hpp"
+
 #include "System/Collections/Generic/List_1.hpp"
 #include "SaberTrickTrail.hpp"
 #include <string>
@@ -41,7 +43,6 @@ class SaberTrickModel {
   public:
     UnityEngine::Rigidbody* Rigidbody = nullptr;
     UnityEngine::GameObject* SaberGO;  // GameObject
-    GlobalNamespace::ColorManager* colorManager;
     GlobalNamespace::Saber* saberScript;
     bool basicSaber;
     int update;
@@ -279,7 +280,7 @@ class SaberTrickModel {
 
 
 
-    void ChangeColorCoroutine2(UnityEngine::Color color) {
+    void ChangeColorTrickModel(UnityEngine::Color color) {
         getLogger().debug("Coloring saber model %d", (int) saberScript->get_saberType());
 
         auto *modelController = TrickModel->GetComponentInChildren<GlobalNamespace::SaberModelController *>(true);
@@ -324,18 +325,12 @@ class SaberTrickModel {
                 update = 0;
 
             if (update == 0) {
-                if (colorManager == nullptr)
-                    colorManager = saberScript->GetComponentInChildren<GlobalNamespace::ColorManager *>();
+                auto color = Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
 
-                std::string findEnv = &"Chroma_colorSaber" [(int) saberScript->get_saberType()];
-
-                auto result = getenv(findEnv.c_str());
-
-                getLogger().debug("Got the result %s", result);
-
-                if (result && strcmp(result, "true") == 0 && colorManager != nullptr) {
-                    ChangeColorCoroutine2(colorManager->ColorForSaberType(saberScript->get_saberType()));
+                if (color) {
+                    ChangeColorTrickModel(color.value());
                 }
+
             }
         } else update = 0;
     }
