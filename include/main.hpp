@@ -18,7 +18,7 @@ const Logger& logger();
 static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController = nullptr;
 static GlobalNamespace::SaberManager *saberManager = nullptr;
 
-void DisableBurnMarks(int saberType);
+//void DisableBurnMarks(int saberType);
 void EnableBurnMarks(int saberType);
 
 int64_t getTimeMillis();
