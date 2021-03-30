@@ -75,8 +75,8 @@ extern "C" void setup(ModInfo& info) {
     getLogger().info("Leaving setup!");
 }
 
-Saber* FakeSaber = nullptr;
-Saber* RealSaber = nullptr;
+//Saber* FakeSaber = nullptr;
+//Saber* RealSaber = nullptr;
 TrickManager leftSaber;
 TrickManager rightSaber;
 
@@ -87,8 +87,8 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, UnityEngine::Scene
         auto str = to_utf8(csstrtostr(name));
         getLogger().debug("Scene name internal: %s", str.c_str());
     }
-    FakeSaber = nullptr;
-    RealSaber = nullptr;
+    //FakeSaber = nullptr;
+    //RealSaber = nullptr;
     TrickManager::StaticClear();
     leftSaber.Clear();
     rightSaber.Clear();
@@ -117,12 +117,6 @@ MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
     SaberManager_Start(self);
     saberManager = self;
     getLogger().debug("SaberManager_Start");
-}
-
-MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
-    getLogger().debug("Saber_Start");
-    Saber_Start(self);
-    getLogger().debug("Saber_Start original called name: %s", to_utf8(csstrtostr(self->get_name())).c_str());
 
     if (to_utf8(csstrtostr(self->get_name())).starts_with(saberPrefix)) {
         getLogger().debug("Ignoring trick start");
@@ -130,8 +124,8 @@ MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
     }
 
     // saber->sabertypeobject->sabertype
-    SaberType saberType = self->saberType->saberType;
-    getLogger().debug("SaberType: %i", (int) saberType);
+    //SaberType saberType = self->saberType->saberType;
+    //getLogger().debug("SaberType: %i", (int) saberType);
 
     auto *vrControllers = UnityEngine::Resources::FindObjectsOfTypeAll<VRController*>();
 
@@ -140,21 +134,21 @@ MAKE_HOOK_OFFSETLESS(Saber_Start, void, Saber* self) {
 
 
 
-    if ((int) saberType == 0) {
+    //if ((int) saberType == 0) {
         getLogger().debug("Left?");
 //        leftSaber.VRController = vrControllersManager->get_node();
-        leftSaber.Saber = self;
+        leftSaber.Saber = self->leftSaber;
         leftSaber._isLeftSaber = true;
         leftSaber.other = &rightSaber;
         leftSaber.Start();
-    } else {
+    //} else {
         getLogger().debug("Right?");
 //        rightSaber.VRController = vrControllersManager->rightVRController;
-        rightSaber.Saber = self;
+        rightSaber.Saber = self->rightSaber;
         rightSaber.other = &leftSaber;
         rightSaber.Start();
-    }
-    RealSaber = self;
+    //}
+    //RealSaber = self;
 }
 
 MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
@@ -170,7 +164,7 @@ MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
 static std::vector<System::Type*> tBurnTypes;
 
 
-void DisableBurnMarks(int saberType) {
+/*void DisableBurnMarks(int saberType) {
     if (!FakeSaber) {
         static auto* tSaber = csTypeOf(Saber*);
         auto* core = UnityEngine::GameObject::Find(il2cpp_utils::createcsstr("GameCore"));
@@ -191,7 +185,7 @@ void DisableBurnMarks(int saberType) {
             sabers->values[saberType] = FakeSaber;
         }
     }
-}
+}*/
 
 void EnableBurnMarks(int saberType) {
     for (auto *type : tBurnTypes) {
@@ -364,7 +358,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
         BeatSaberUI::CreateText(floatGrid->get_transform(), "Technical numbers, please avoid.", false);
         BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SlowmoStepAmount, 1, 0.1, 0, 10)->get_gameObject(),"The slow motion time scale amount.");
         BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SlowmoAmount, 2, 0.1, 0, 10)->get_gameObject(),"The intensity of the slow motion.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().VelocityBufferSize, 0, 1, 0, 10)->get_gameObject(),"Technical number for the size of the list that holds velocity throughout time.");
+        BeatSaberUI::AddHoverHint(AddConfigValueIncrementInt(floatGrid->get_transform(), getPluginConfig().VelocityBufferSize, 1, 0, 10)->get_gameObject(),"Technical number for the size of the list that holds velocity throughout time.");
 
         auto* actionGrid = container;
         BeatSaberUI::CreateText(actionGrid->get_transform(), "Actions Remapping (UI is very funky here)", false);
@@ -400,7 +394,6 @@ extern "C" void load() {
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_SceneLoaded, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_SceneLoaded", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), GameScenesManager_PushScenes, il2cpp_utils::FindMethodUnsafe("", "GameScenesManager", "PushScenes", 4));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), Saber_Start, il2cpp_utils::FindMethod("", "Saber", "Start"));
     INSTALL_HOOK_OFFSETLESS(getLogger(), Saber_ManualUpdate, il2cpp_utils::FindMethod("", "Saber", "ManualUpdate"));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), FixedUpdate, il2cpp_utils::FindMethod("", "OculusVRHelper", "FixedUpdate"));
@@ -420,8 +413,8 @@ extern "C" void load() {
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBasicNote", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), SpawnBomb, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBombNote", 1));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteMissed, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasMissed", 1));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteCut, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteWasCut", 2));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteMissed, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteControllerNoteWasMissed", 1));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteCut, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteControllerNoteWasCut", 2));
 
 //    INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethodUnsafe("", "GameSongController", "StartSong", 1));
 
