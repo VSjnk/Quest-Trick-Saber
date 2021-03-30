@@ -770,7 +770,7 @@ void TrickManager::ThrowStart() {
             }
         }
 
-        DisableBurnMarks(_isLeftSaber ? 0 : 1);
+        //DisableBurnMarks(_isLeftSaber ? 0 : 1);
 
         getLogger().debug("Throw state set");
         setThrowState(Started);
