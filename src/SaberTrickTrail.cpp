@@ -8,7 +8,7 @@
 #include "SaberTrickTrail.hpp"
 #include "main.hpp"
 
-DEFINE_CLASS(TrickSaber::TrickSaberTrailData);
+DEFINE_TYPE(TrickSaber::TrickSaberTrailData);
 
 
 namespace TrickSaber {
@@ -27,8 +27,6 @@ namespace TrickSaber {
             this->bottomTransform = this->get_transform()->Find(il2cpp_utils::createcsstr("TrailStart"));
         }
 
-        print();
-
         set_enabled(true);
     }
 
@@ -42,8 +40,6 @@ namespace TrickSaber {
         this->color = saberTrail1->color;
         this->granularity = saberTrail1->granularity;
         this->saberTrail = saberTrail1;
-
-        print();
     }
 
     void TrickSaberTrailData::Update() {
@@ -84,22 +80,5 @@ namespace TrickSaber {
 //        );
 
         this->customMovementData->AddNewData(topPos, bottomPos, GlobalNamespace::TimeHelper::get_time());
-    }
-
-    void TrickSaberTrailData::print() {
-        if (topTransform->get_gameObject() && bottomTransform->get_gameObject()) {
-            auto *topGOName = UnityEngine::GameObject::GetName(topTransform->get_gameObject());
-            auto *botGOName = UnityEngine::GameObject::GetName(bottomTransform->get_gameObject());
-
-            auto topName = to_utf8(csstrtostr(topGOName));
-            auto botName = to_utf8(csstrtostr(botGOName));
-
-            if (topGOName && botGOName) {
-                getLogger().debug("Saber transforms redo top %s bottom %s",
-                                  topName.c_str(),
-                                  botName.c_str()
-                );
-            }
-        }
     }
 }
