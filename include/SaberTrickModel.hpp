@@ -223,6 +223,7 @@ class SaberTrickModel {
             if (model->get_gameObject()->GetComponents<TrickSaber::TrickSaberTrailData*>()->Length() == 0) {
                 auto *trail = model->get_gameObject()->AddComponent<TrickSaber::TrickSaberTrailData *>();
                 trail->Init(trailEnd->get_transform(), trailStart->get_transform(), obj);
+//                model->get_gameObject()->Destroy(obj);
             }
 
 //            obj->set_enabled(false);

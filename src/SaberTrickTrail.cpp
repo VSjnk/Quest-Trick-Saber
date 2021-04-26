@@ -13,23 +13,6 @@ DEFINE_TYPE(TrickSaber::TrickSaberTrailData);
 
 namespace TrickSaber {
 
-
-    void TrickSaberTrailData::Awake() {
-        getLogger().info("Trick Data Awake");
-        this->customMovementData = GlobalNamespace::SaberMovementData::New_ctor();
-
-        this->movementData = reinterpret_cast<GlobalNamespace::IBladeMovementData*>(this->customMovementData);
-
-        if (!this->topTransform){
-            this->topTransform = this->get_transform()->Find(il2cpp_utils::createcsstr("TrailEnd"));
-        }
-        if (!this->bottomTransform){
-            this->bottomTransform = this->get_transform()->Find(il2cpp_utils::createcsstr("TrailStart"));
-        }
-
-        set_enabled(true);
-    }
-
     void TrickSaberTrailData::Init(UnityEngine::Transform* topTransform, UnityEngine::Transform* bottomTransform, GlobalNamespace::SaberTrail* saberTrail1) {
         this->topTransform = topTransform;
         this->bottomTransform = bottomTransform;
@@ -39,17 +22,10 @@ namespace TrickSaber {
         this->trailRendererPrefab = saberTrail1->trailRendererPrefab;
         this->color = saberTrail1->color;
         this->granularity = saberTrail1->granularity;
-        this->saberTrail = saberTrail1;
+        set_enabled(saberTrail1->get_enabled());
     }
 
     void TrickSaberTrailData::Update() {
-        this->trailDuration = saberTrail->trailDuration;
-        this->whiteSectionMaxDuration = saberTrail->whiteSectionMaxDuration;
-        this->trailRenderer = saberTrail->trailRenderer;
-        this->trailRendererPrefab = saberTrail->trailRendererPrefab;
-        this->color = saberTrail->color;
-        this->granularity = saberTrail->granularity;
-
         if (!this->topTransform || !this->bottomTransform) {
             if (this->topTransform == nullptr) {
                 this->topTransform = this->get_transform()->Find(il2cpp_utils::createcsstr("TrailEnd"));
@@ -58,10 +34,7 @@ namespace TrickSaber {
                 this->bottomTransform = this->get_transform()->Find(il2cpp_utils::createcsstr("TrailStart"));
             }
             if (!this->topTransform || !this->bottomTransform) {
-                getLogger().debug("No trails transform sadly");
                 return;
-            } else {
-                getLogger().debug("YAY trails transform sadly");
             }
         }
         // this method just makes sure that the trail gets updated positions through it's custom movementData
