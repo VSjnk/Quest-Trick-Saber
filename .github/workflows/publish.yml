@@ -75,10 +75,6 @@ jobs:
           echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
           echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
 
-      - name: QPM Edit Version
-        run: |
-          ./QPM/QPM package edit version "${{ steps.get_tag_version.outputs.VERSION }}"
-
       - name: Build
         run: |
           cd ${GITHUB_WORKSPACE}
@@ -90,6 +86,7 @@ jobs:
           git config user.name "Github Actions"
           git config user.email "<>"
       - name: Commit Edit Version
+        continue-on-error: true
         run: |
           git add ./Android.mk qpm.json
           git commit -m "Update Version and post restore"
@@ -130,7 +127,7 @@ jobs:
         id: libname
         run: |
           cd ./libs/arm64-v8a/
-          pattern="libchroma*.so"
+          pattern="libTrickSaber*.so"
           files=( $pattern )
           echo ::set-output name=NAME::"${files[0]}"
       # Upload our release assets
