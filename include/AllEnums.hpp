@@ -1,15 +1,8 @@
 #pragma once
 
+#include "TrickState.hpp"
 #include "ConfigEnums.hpp"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
-
-
-enum TrickState {
-	Inactive,
-	Started,
-	Ending,
-};
-
 
 enum class VRSystem {
     Oculus,

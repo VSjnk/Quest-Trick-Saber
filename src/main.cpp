@@ -77,8 +77,7 @@ extern "C" void setup(ModInfo& info) {
 
 //Saber* FakeSaber = nullptr;
 //Saber* RealSaber = nullptr;
-TrickManager leftSaber;
-TrickManager rightSaber;
+
 
 MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, UnityEngine::SceneManagement::Scene scene, UnityEngine::SceneManagement::LoadSceneMode mode) {
     getLogger().info("SceneManager_Internal_SceneLoaded");

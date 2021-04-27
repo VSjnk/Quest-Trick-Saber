@@ -10,6 +10,8 @@
 #include "main.hpp"
 #include <string>
 
+using namespace TrickSaber;
+
 // Define static fields
 constexpr UnityEngine::Space RotateSpace = UnityEngine::Space::Self;
 
@@ -274,6 +276,7 @@ void TrickManager::StaticClear() {
 void TrickManager::Clear() {
     setSpinState(Inactive);
     setThrowState(Inactive);
+    delete _saberTrickModel;
     _saberTrickModel = nullptr;
     _originalSaberModelT = nullptr;
 }
@@ -985,3 +988,31 @@ bool TrickManager::isDoingTricks() {
     return _spinState != Inactive || _throwState != Inactive;
 }
 
+TrickSaber::TrickState TrickManager::getSpinState() const {
+    return _spinState;
+}
+
+TrickSaber::TrickState TrickManager::getThrowState() const {
+    return _throwState;
+}
+
+UnityEngine::GameObject * TrickManager::getNormalSaber() const {
+    if (!_saberTrickModel)
+        return nullptr;
+
+    return _saberTrickModel->getOriginalModel();
+}
+
+UnityEngine::GameObject * TrickManager::getActiveSaber() const {
+    if (!_saberTrickModel)
+        return nullptr;
+
+    return _saberTrickModel->getActiveModel();
+}
+
+UnityEngine::GameObject * TrickManager::getTrickSaber() const {
+    if (!_saberTrickModel)
+        return nullptr;
+
+    return _saberTrickModel->getTrickModel();
+}

@@ -69,13 +69,19 @@ class TrickManager {
         void Update();
         bool isDoingTricks();
 
+        TrickSaber::TrickState getThrowState() const;
+        TrickSaber::TrickState getSpinState() const;
+        UnityEngine::GameObject* getActiveSaber() const;
+        UnityEngine::GameObject* getTrickSaber() const;
+        UnityEngine::GameObject* getNormalSaber() const;
+
 	protected:
-		TrickState _throwState;  // initialized in Start
-		TrickState _spinState;
+        TrickSaber::TrickState _throwState;  // initialized in Start
+        TrickSaber::TrickState _spinState;
 
     private:
-        void setSpinState(TrickState state);
-        void setThrowState(TrickState state);
+        void setSpinState(TrickSaber::TrickState state);
+        void setThrowState(TrickSaber::TrickState state);
 		void Start2();
 		UnityEngine::Transform * FindBasicSaberTransform();
         ValueTuple GetTrackingPos();
@@ -121,3 +127,6 @@ class TrickManager {
 		// float _prevThrowReturnDistance;
 		UnityEngine::Transform* _fakeTransform;  // will "replace" VRController's transform during trickCutting throws
 };
+
+inline TrickManager leftSaber;
+inline TrickManager rightSaber;

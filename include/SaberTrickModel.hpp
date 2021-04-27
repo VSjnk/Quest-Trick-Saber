@@ -31,7 +31,7 @@
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ColorManager.hpp"
 
-#include "chroma/shared/SaberAPI.hpp"
+//#include "chroma/shared/SaberAPI.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
 #include "SaberTrickTrail.hpp"
@@ -46,6 +46,18 @@ class SaberTrickModel {
     GlobalNamespace::Saber* saberScript;
     bool basicSaber;
     int update;
+
+    UnityEngine::GameObject* getTrickModel() const {
+        return this->TrickModel;
+    }
+
+    UnityEngine::GameObject* getOriginalModel() const {
+        return this->OriginalSaberModel;
+    }
+
+    UnityEngine::GameObject* getActiveModel() const {
+        return SaberGO;
+    }
 
     SaberTrickModel(GlobalNamespace::Saber* saber, UnityEngine::GameObject* SaberModel, bool basicSaber) {
         CRASH_UNLESS(SaberModel);
@@ -223,7 +235,7 @@ class SaberTrickModel {
             if (model->get_gameObject()->GetComponents<TrickSaber::TrickSaberTrailData*>()->Length() == 0) {
                 auto *trail = model->get_gameObject()->AddComponent<TrickSaber::TrickSaberTrailData *>();
                 trail->Init(trailEnd->get_transform(), trailStart->get_transform(), obj);
-//                model->get_gameObject()->Destroy(obj);
+                model->get_gameObject()->Destroy(obj);
             }
 
 //            obj->set_enabled(false);
@@ -317,6 +329,8 @@ class SaberTrickModel {
 
     // Update every 5th frame
     void Update() {
+        return;
+
         if (!Modloader::getMods().contains("Chroma")) return;
 
         if (TrickModel->get_activeSelf()) {
@@ -326,7 +340,7 @@ class SaberTrickModel {
                 update = 0;
 
             if (update == 0) {
-                auto color = Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
+                auto color = std::optional(UnityEngine::Color()); //Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
 
                 if (color) {
                     ChangeColorTrickModel(color.value());
