@@ -18,7 +18,11 @@ namespace TrickSaber {
         this->bottomTransform = bottomTransform;
         this->trailDuration = saberTrail1->trailDuration;
         this->whiteSectionMaxDuration = saberTrail1->whiteSectionMaxDuration;
-        this->trailRenderer = saberTrail1->trailRenderer;
+
+        if (this->trailRenderer)
+            UnityEngine::GameObject::Destroy(this->trailRenderer);
+
+        this->trailRenderer = UnityEngine::GameObject::Instantiate(saberTrail1->trailRenderer);
         this->trailRendererPrefab = saberTrail1->trailRendererPrefab;
         this->color = saberTrail1->color;
         this->granularity = saberTrail1->granularity;
@@ -51,6 +55,7 @@ namespace TrickSaber {
 //                          topPos.x, topPos.y, topPos.z,
 //                          bottomPos.x, bottomPos.y, bottomPos.z
 //        );
+
 
         this->customMovementData->AddNewData(topPos, bottomPos, GlobalNamespace::TimeHelper::get_time());
     }

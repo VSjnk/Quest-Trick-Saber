@@ -465,7 +465,7 @@ void TrickManager::Update() {
 
         UnityEngine::Vector3 saberLogPos = _saberTrickModel->Rigidbody->get_transform()->get_localPosition();
 
-        getLogger().debug("Saber (%f %f %f) and controller pos (%f %f %f) and dist %f", saberLogPos.x, saberLogPos.y, saberLogPos.z, _controllerPosition.x, _controllerPosition.y, _controllerPosition.z, distanceController);
+//        getLogger().debug("Saber (%f %f %f) and controller pos (%f %f %f) and dist %f", saberLogPos.x, saberLogPos.y, saberLogPos.z, _controllerPosition.x, _controllerPosition.y, _controllerPosition.z, distanceController);
 
         auto d = Vector3_Subtract(_controllerPosition, saberPos);
         float distance = Vector3_Magnitude(d);
@@ -474,7 +474,7 @@ void TrickManager::Update() {
             ThrowEnd();
         } else {
             float returnSpeed = fmax(distance, 1.0f) * getPluginConfig().ReturnSpeed.GetValue();
-            getLogger().debug("distance: %f; return speed: %f", distance, returnSpeed);
+//            getLogger().debug("distance: %f; return speed: %f", distance, returnSpeed);
             auto dirNorm = d.get_normalized();
             auto newVel = Vector3_Multiply(dirNorm, returnSpeed);
 
@@ -1015,4 +1015,8 @@ UnityEngine::GameObject * TrickManager::getTrickSaber() const {
         return nullptr;
 
     return _saberTrickModel->getTrickModel();
+}
+
+SaberTrickModel *TrickManager::getTrickModel() const {
+    return _saberTrickModel;
 }

@@ -8,7 +8,6 @@
 #include "GlobalNamespace/GamePause.hpp"
 #include "GlobalNamespace/OculusVRHelper.hpp"
 #include "GlobalNamespace/SaberBurnMarkArea.hpp"
-#include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 
 #include "GlobalNamespace/ObstacleSaberSparkleEffectManager.hpp"
 #include "custom-types/shared/register.hpp"
@@ -18,9 +17,9 @@
 #include "System/Action_1.hpp"
 #include "Zenject/DiContainer.hpp"
 #include "GlobalNamespace/ScenesTransitionSetupDataSO.hpp"
-#include "UnityEngine/RectOffset.hpp"
 #include "UnityEngine/Events/UnityAction.hpp"
 #include "HMUI/Touchable.hpp"
+#include "GlobalNamespace/TimeHelper.hpp"
 
 #include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
 #include "bs-utils/shared/utils.hpp"
@@ -151,13 +150,26 @@ MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
 }
 
 MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
-    Saber_ManualUpdate(self);
-    if (self == leftSaber.Saber) {
-        leftSaber.Update();
-    } else if (self == rightSaber.Saber) {
-        // rightSaber.LogEverything();
-        rightSaber.Update();
-    }
+    static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
+    TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
+
+    if (!QosmeticsLoaded && trickManager.getTrickModel() && trickManager.getTrickModel()->getModelBottomTransform()) {
+        // Handle trails here
+        if (!self->get_gameObject()->get_activeInHierarchy()) {
+            return;
+        }
+
+        auto trickModel = trickManager.getTrickModel();
+
+        self->handlePos = self->handleTransform->get_position();
+        self->handleRot = self->handleTransform->get_rotation();
+        self->saberBladeTopPos = trickModel->getModelTopTransform()->get_position();
+        self->saberBladeBottomPos = trickModel->getModelBottomTransform()->get_position();
+        self->movementData->AddNewData(self->saberBladeTopPos, self->saberBladeBottomPos, GlobalNamespace::TimeHelper::get_time());
+    } else
+        Saber_ManualUpdate(self);
+
+    trickManager.Update();
 }
 
 static std::vector<System::Type*> tBurnTypes;
@@ -287,6 +299,8 @@ MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteCon
 
     NoteMissed(self, noteController);
 }
+
+
 
 template <class K, class V>
 std::vector<K> getKeys(std::map<K, V> map) {

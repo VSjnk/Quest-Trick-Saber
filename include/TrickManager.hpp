@@ -75,6 +75,8 @@ class TrickManager {
         UnityEngine::GameObject* getTrickSaber() const;
         UnityEngine::GameObject* getNormalSaber() const;
 
+        SaberTrickModel* getTrickModel() const;
+
 	protected:
         TrickSaber::TrickState _throwState;  // initialized in Start
         TrickSaber::TrickState _spinState;
