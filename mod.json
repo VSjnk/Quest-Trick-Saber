@@ -1,0 +1,24 @@
+{
+  "_QPVersion": "0.1.1",
+  "name": "TrickSaber",
+  "id": "TrickSaber",
+  "author": "ToniMacaroni",
+  "porter": "FernTheDev, Michael Zoller",
+  "version": "0.3.3",
+  "packageId": "com.beatgames.beatsaber",
+  "packageVersion": "1.14.0",
+  "description": "Do tricks and stuff",
+  "modFiles": [
+    "libTrickSaber.so"
+  ],
+  "libraryFiles": [
+    "libbeatsaber-hook_1_3_3.so"
+  ],
+  "dependencies": [
+    {
+      "id": "codegen",
+      "version": ">=0.8.1",
+      "downloadIfMissing": "https://cdn.discordapp.com/attachments/769457887415894036/837780420811816987/codegen_0_8_1.qmod"
+    }
+  ]
+}

@@ -68,3 +68,5 @@ out/
 extern
 
 Android.mk.backup
+*.txt
+*.qmod
