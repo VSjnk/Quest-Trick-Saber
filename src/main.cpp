@@ -436,7 +436,6 @@ extern "C" void load() {
     tBurnTypes.push_back(csTypeOf(GlobalNamespace::ObstacleSaberSparkleEffectManager*));
 
     getLogger().info("Registering custom types");
-    custom_types::Register::RegisterType<TrickSaber::TrickSaberTrailData>();
     getLogger().info("Registered types");
 
     getLogger().info("Installed all hooks!");

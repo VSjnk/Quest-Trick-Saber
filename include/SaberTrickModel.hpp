@@ -34,7 +34,6 @@
 //#include "chroma/shared/SaberAPI.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
-#include "SaberTrickTrail.hpp"
 #include <string>
 
 static const std::string saberPrefix = "trick_saber_";
@@ -227,58 +226,6 @@ class SaberTrickModel {
             // Fix trails?
             saberScript->saberBladeBottomTransform->SetParent(OriginalSaberModel->get_transform());
             saberScript->saberBladeTopTransform->SetParent(OriginalSaberModel->get_transform());
-        }
-    }
-
-    void FixTrails(UnityEngine::GameObject* model) {
-        auto *trails = model->GetComponentsInChildren<GlobalNamespace::SaberTrail *>(false);
-        if (model->get_gameObject()->GetComponents<TrickSaber::TrickSaberTrailData *>()->Length() != 0) return;
-
-        getLogger().debug("trick saber trails.length: %u", trails->Length());
-        for (int i = 0; i < trails->Length(); i++) {
-            GlobalNamespace::SaberTrail *obj = trails->values[i];
-
-            auto *trailStart = UnityEngine::GameObject::New_ctor();
-            auto *trailEnd = UnityEngine::GameObject::New_ctor();
-
-
-//                trailStart->get_transform()->SetParent(saberScript->saberBladeBottomTransform, false);
-            trailStart->get_transform()->SetPositionAndRotation(saberScript->saberBladeBottomTransform->get_position(),
-                                                                saberScript->saberBladeBottomTransform->get_rotation());
-            trailStart->get_transform()->set_position(saberScript->saberBladeBottomTransform->get_position());
-            trailStart->get_transform()->SetParent(model->get_transform());
-            //                trailStart->get_transform()->set_localPosition(saberScript->saberBladeBottomTransform->get_position());
-//                trailStart->get_transform()->set_localRotation(saberScript->saberBladeBottomTransform->get_rotation());
-//                trailStart->get_transform()->set_localPosition(UnityEngine::Vector3(0.0, 0.0, 1.02));
-
-
-//                trailEnd->get_transform()->SetParent(saberScript->saberBladeTopTransform, false);
-            trailEnd->get_transform()->SetPositionAndRotation(saberScript->saberBladeTopTransform->get_position(),
-                                                              saberScript->saberBladeTopTransform->get_rotation());
-            trailEnd->get_transform()->set_position(saberScript->saberBladeTopTransform->get_position());
-            trailEnd->get_transform()->SetParent(model->get_transform());
-            getLogger().debug("Trail end parent: %s",
-                              to_utf8(csstrtostr(trailEnd->get_transform()->GetParent()->get_name())).c_str());
-
-            //                trailEnd->get_transform()->set_localPosition(UnityEngine::Vector3(0.0, 0.0, 0.1));
-//                trailEnd->get_transform()->set_localPosition(saberScript->saberBladeTopTransform->get_position());
-//                trailEnd->get_transform()->set_localRotation(saberScript->saberBladeTopTransform->get_rotation());
-
-            trailStart->set_name(il2cpp_utils::createcsstr("TrailStart"));
-            trailEnd->set_name(il2cpp_utils::createcsstr("TrailEnd"));
-            UnityEngine::Object::SetName(trailStart, il2cpp_utils::createcsstr("TrailStart"));
-            UnityEngine::Object::SetName(trailEnd, il2cpp_utils::createcsstr("TrailEnd"));
-
-
-            auto *trail = model->get_gameObject()->AddComponent<TrickSaber::TrickSaberTrailData *>();
-            trail->Init(trailEnd->get_transform(), trailStart->get_transform(), obj);
-            trail->set_enabled(obj->get_enabled());
-
-            model->get_gameObject()->Destroy(obj);
-
-
-//            obj->set_enabled(false);
-
         }
     }
 
