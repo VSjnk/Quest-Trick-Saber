@@ -951,8 +951,13 @@ void TrickManager::_InPlaceRotate(float amount) {
     if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _originalSaberModelT->Rotate(Vector3_Right, amount, RotateSpace);
     } else {
+        auto currentRotation = _currentRotation;
         _currentRotation += amount;
-        _originalSaberModelT->Rotate(Vector3_Right, _currentRotation, RotateSpace);
+        auto rotationTarget = _currentRotation;
+
+        auto rotation = currentRotation + ((rotationTarget - currentRotation) * (UnityEngine::Time::get_deltaTime() * 30));
+
+        _originalSaberModelT->Rotate(Vector3_Right, rotation, RotateSpace);
     }
 }
 
