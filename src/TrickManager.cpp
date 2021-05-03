@@ -10,7 +10,12 @@
 #include "main.hpp"
 #include <string>
 
+#include "UnityEngine/WaitForEndOfFrame.hpp"
+
+
 using namespace TrickSaber;
+using namespace custom_types;
+using namespace custom_types::Helpers;
 
 // Define static fields
 constexpr UnityEngine::Space RotateSpace = UnityEngine::Space::Self;
@@ -415,19 +420,6 @@ void TrickManager::Update() {
     if (!VRController->get_enabled())
         return;
 
-    std::optional<UnityEngine::Quaternion> oRot;
-    if (_spinState == Ending) {  // not needed for Started because only Rotate and _currentRotation are used
-        // Note: localRotation is the same as rotation for TrickCutting, since parent is VRGameCore
-        auto tmp = _originalSaberModelT->get_localRotation();
-
-        std::optional<UnityEngine::Quaternion> opt = std::optional(tmp);
-
-        oRot.emplace(tmp);
-        // if (getPluginConfig().EnableTrickCutting && oRot) {
-        //     getLogger().debug("pre-manual VRController.Update rot: {%f, %f, %f, %f}", oRot->w, oRot->x, oRot->y, oRot->z);
-        // }
-    }
-
     if (getPluginConfig().EnableTrickCutting.GetValue() && ((_spinState != Inactive) || (_throwState != Inactive))) {
         VRController->Update(); // sets position and pre-_currentRotation
     }
@@ -479,35 +471,6 @@ void TrickManager::Update() {
             auto newVel = Vector3_Multiply(dirNorm, returnSpeed);
 
             _saberTrickModel->Rigidbody->set_velocity(newVel);
-        }
-    }
-    if (_spinState == Ending) {
-        auto rot = CRASH_UNLESS(oRot);
-        auto targetRot = getPluginConfig().EnableTrickCutting.GetValue() ? _controllerRotation : Quaternion_Identity;
-
-        float angle = UnityEngine::Quaternion::Angle(rot, targetRot);
-        // getLogger().debug("angle: %f (%f)", angle, 360.0f - angle);
-        if (getPluginConfig().CompleteRotationMode.GetValue()) {
-            float minSpeed = 8.0f;
-            float returnSpinSpeed = _finalSpinSpeed;
-            if (abs(returnSpinSpeed) < minSpeed) {
-                returnSpinSpeed = returnSpinSpeed < 0 ? -minSpeed : minSpeed;
-            }
-            float threshold = abs(returnSpinSpeed) + 0.1f;
-            // TODO: cache returnSpinSpeed (and threshold?) in InPlaceRotationReturn
-            if (angle <= threshold) {
-                InPlaceRotationEnd();
-            } else {
-                _InPlaceRotate(returnSpinSpeed);
-            }
-        } else {  // LerpToOriginalRotation
-            if (angle <= 5.0f) {
-                InPlaceRotationEnd();
-            } else {
-                rot = UnityEngine::Quaternion::Lerp(rot, targetRot, getDeltaTime() * 20.0f);
-
-                _originalSaberModelT->set_localRotation(rot);
-            }
         }
     }
     // TODO: no tricks while paused? https://github.com/ToniMacaroni/TrickSaber/blob/ea60dce35db100743e7ba72a1ffbd24d1472f1aa/TrickSaber/SaberTrickManager.cs#L66
@@ -926,8 +889,50 @@ void TrickManager::InPlaceRotationReturn() {
         setSpinState(Ending);
         // where the PC mod would start a coroutine here, we'll wind the spin down starting in next TrickManager::Update
         // so just to maintain the movement: (+ restore the rotation that was reset by VRController.Update iff TrickCutting)
-        _InPlaceRotate(_finalSpinSpeed);
+
+        // Fern scratch that, finally got coroutines, thanks scad!
+        auto coro = getPluginConfig().CompleteRotationMode.GetValue() ? CoroutineHelper::New(CompleteRotation()) : CoroutineHelper::New(LerpToOriginalRotation());
+        _saberTrickModel->saberScript->StartCoroutine(reinterpret_cast<enumeratorT*>(coro));
     }
+}
+
+Coroutine TrickManager::CompleteRotation() {
+    auto minSpeed = 8.0f;
+    auto largestSpinSpeed = _finalSpinSpeed;
+
+    if (std::abs(largestSpinSpeed) < minSpeed)
+    {
+        largestSpinSpeed = _finalSpinSpeed < 0 ? -minSpeed : minSpeed;
+    }
+
+    auto threshold = std::abs(_finalSpinSpeed) + 0.1f;
+    auto angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), UnityEngine::Quaternion::get_identity());
+
+    while (angle > threshold)
+    {
+        _originalSaberModelT->Rotate(UnityEngine::Vector3::get_right() * _finalSpinSpeed);
+        angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), UnityEngine::Quaternion::get_identity());
+        co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
+    }
+
+    _originalSaberModelT->set_localRotation(UnityEngine::Quaternion::get_identity());
+    setSpinState(Inactive);
+    TrickEnd();
+}
+
+Coroutine TrickManager::LerpToOriginalRotation() {
+    auto rot = _originalSaberModelT->get_localRotation();
+    while (UnityEngine::Quaternion::Angle(rot, UnityEngine::Quaternion::get_identity()) > 5.0f)
+    {
+        rot = UnityEngine::Quaternion::Lerp(rot, UnityEngine::Quaternion::get_identity(), UnityEngine::Time::get_deltaTime() * 20);
+        _originalSaberModelT->set_localRotation(rot);
+        co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
+    }
+
+    _originalSaberModelT->set_localRotation(UnityEngine::Quaternion::get_identity());
+
+    setSpinState(Inactive);
+    TrickEnd();
 }
 
 void TrickManager::InPlaceRotationEnd() {
@@ -938,9 +943,9 @@ void TrickManager::InPlaceRotationEnd() {
     }
 
     getLogger().debug("%s spin end!", _isLeftSaber ? "Left" : "Right");
-    setSpinState(Inactive);
-    TrickEnd();
 }
+
+
 
 void TrickManager::_InPlaceRotate(float amount) {
     if (!getPluginConfig().EnableTrickCutting.GetValue()) {
@@ -968,20 +973,10 @@ void TrickManager::InPlaceRotation(float power) {
 
 void TrickManager::setThrowState(TrickState state) {
     _throwState = state;
-
-    std::string envName = "trick_state_saber_throw" + std::to_string(_isLeftSaber ? 0 : 1);
-    std::string stateStr = actionToString(_throwState);
-
-    setenv(envName.c_str(), stateStr.c_str(), true);
 }
 
 void TrickManager::setSpinState(TrickState state) {
     _spinState = state;
-
-    std::string envName = "trick_state_saber_spin" + std::to_string(_isLeftSaber ? 0 : 1);
-    std::string stateStr = actionToString(_throwState);
-
-    setenv(envName.c_str(), stateStr.c_str(), true);
 }
 
 bool TrickManager::isDoingTricks() {

@@ -15,6 +15,9 @@
 #include "GlobalNamespace/Saber.hpp"
 #include "UnityEngine/Transform.hpp"
 
+#include <experimental/coroutine>
+#include "custom-types/shared/coroutine.hpp"
+
 // Conventions:
 // tX means the type (usually System.Type i.e. Il2CppReflectionType) of X
 // cX means the Il2CppClass of X
@@ -95,6 +98,8 @@ class TrickManager {
         void InPlaceRotationStart();
 		void InPlaceRotation(float power);
 		void _InPlaceRotate(float amount);
+		custom_types::Helpers::Coroutine LerpToOriginalRotation();
+        custom_types::Helpers::Coroutine CompleteRotation();
 		void InPlaceRotationReturn();
         void InPlaceRotationEnd();
 		void TrickStart() const;
