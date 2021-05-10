@@ -395,12 +395,6 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
     }
 }
 
-void DidDeActivate(HMUI::ViewController* self,bool removedFromHierarchy, bool screenSystemDisabling){
-    getLogger().info("Saving config because of menu");
-    getConfig().Write();
-    getConfig().Reload();
-}
-
 extern "C" void load() {
     il2cpp_functions::Init();
     // TODO: config menus
