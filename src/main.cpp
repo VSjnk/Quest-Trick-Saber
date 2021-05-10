@@ -17,6 +17,7 @@
 #include "System/Action_1.hpp"
 #include "Zenject/DiContainer.hpp"
 #include "GlobalNamespace/ScenesTransitionSetupDataSO.hpp"
+#include "GlobalNamespace/SaberMovementData.hpp"
 #include "UnityEngine/Events/UnityAction.hpp"
 #include "HMUI/Touchable.hpp"
 #include "GlobalNamespace/TimeHelper.hpp"
@@ -149,25 +150,25 @@ MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
     //RealSaber = self;
 }
 
-MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
+// Fix trails
+MAKE_HOOK_OFFSETLESS(SaberMovementData_AddNewData, void, SaberMovementData* self, UnityEngine::Vector3 topPos, UnityEngine::Vector3 bottomPos, float time) {
     static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
-    TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
+    TrickManager& trickManager = self == leftSaber.Saber->movementData ? leftSaber : rightSaber;
 
+    // If Qosmetics is on, we do not handle trails.
     if (!QosmeticsLoaded && trickManager.getTrickModel() && trickManager.getTrickModel()->getModelBottomTransform()) {
-        // Handle trails here
-        if (!self->get_gameObject()->get_activeInHierarchy()) {
-            return;
-        }
-
         auto trickModel = trickManager.getTrickModel();
 
-        self->handlePos = self->handleTransform->get_position();
-        self->handleRot = self->handleTransform->get_rotation();
-        self->saberBladeTopPos = trickModel->getModelTopTransform()->get_position();
-        self->saberBladeBottomPos = trickModel->getModelBottomTransform()->get_position();
-        self->movementData->AddNewData(self->saberBladeTopPos, self->saberBladeBottomPos, GlobalNamespace::TimeHelper::get_time());
-    } else
-        Saber_ManualUpdate(self);
+        SaberMovementData_AddNewData(self, trickModel->getModelTopTransform()->get_position(), trickModel->getModelBottomTransform()->get_position(), time);
+    } else {
+        SaberMovementData_AddNewData(self, topPos, bottomPos, time);
+    }
+}
+
+MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
+    TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
+
+    Saber_ManualUpdate(self);
 
     trickManager.Update();
 }
@@ -408,6 +409,7 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_SceneLoaded, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_SceneLoaded", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), GameScenesManager_PushScenes, il2cpp_utils::FindMethodUnsafe("", "GameScenesManager", "PushScenes", 4));
     INSTALL_HOOK_OFFSETLESS(getLogger(), Saber_ManualUpdate, il2cpp_utils::FindMethod("", "Saber", "ManualUpdate"));
+    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberMovementData_AddNewData, il2cpp_utils::FindMethodUnsafe("", "SaberMovementData", "AddNewData", 3));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), FixedUpdate, il2cpp_utils::FindMethod("", "OculusVRHelper", "FixedUpdate"));
     // INSTALL_HOOK_OFFSETLESS(LateUpdate, il2cpp_utils::FindMethod("", "SaberBurnMarkSparkles", "LateUpdate"));
