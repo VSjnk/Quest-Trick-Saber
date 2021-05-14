@@ -220,13 +220,6 @@ class SaberTrickModel {
 
         trickTopPos = trailEnd;
         trickBottomPos = trailStart;
-
-        if (basicSaber && !Modloader::getMods().contains("Qosmetics")) {
-//                TrickModel->GetComponent<GlobalNamespace::SaberTrail*>()->movementData = reinterpret_cast<GlobalNamespace::IBladeMovementData*>(GlobalNamespace::SaberMovementData::New_ctor());
-            // Fix trails?
-            saberScript->saberBladeBottomTransform->SetParent(OriginalSaberModel->get_transform());
-            saberScript->saberBladeTopTransform->SetParent(OriginalSaberModel->get_transform());
-        }
     }
 
     void ChangeToTrickModel() {
