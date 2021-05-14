@@ -150,25 +150,31 @@ MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
     //RealSaber = self;
 }
 
-// Fix trails
-MAKE_HOOK_OFFSETLESS(SaberMovementData_AddNewData, void, SaberMovementData* self, UnityEngine::Vector3 topPos, UnityEngine::Vector3 bottomPos, float time) {
-    static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
-    TrickManager& trickManager = self == leftSaber.Saber->movementData ? leftSaber : rightSaber;
 
-    // If Qosmetics is on, we do not handle trails.
-    if (!QosmeticsLoaded && trickManager.getTrickModel() && trickManager.getTrickModel()->getModelBottomTransform()) {
-        auto trickModel = trickManager.getTrickModel();
-
-        SaberMovementData_AddNewData(self, trickModel->getModelTopTransform()->get_position(), trickModel->getModelBottomTransform()->get_position(), time);
-    } else {
-        SaberMovementData_AddNewData(self, topPos, bottomPos, time);
-    }
-}
 
 MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
     TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
 
     Saber_ManualUpdate(self);
+
+
+    static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
+
+    // Fix trails
+    // If Qosmetics is on, we do not handle trails.
+    if (!QosmeticsLoaded && trickManager.getTrickModel() &&
+
+        // Only manipulate trail movement data
+        trickManager.getTrickModel()->trailMovementData &&
+
+        // Check if transforms have been made yet
+        trickManager.getTrickModel()->getModelBottomTransform()) {
+        auto trickModel = trickManager.getTrickModel();
+
+
+        trickModel->trailMovementData->AddNewData(trickModel->getModelTopTransform()->get_position(),
+                                                  trickModel->getModelBottomTransform()->get_position(), TimeHelper::get_time());
+    }
 
     trickManager.Update();
 }
@@ -403,7 +409,6 @@ extern "C" void load() {
     INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_SceneLoaded, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_SceneLoaded", 2));
     INSTALL_HOOK_OFFSETLESS(getLogger(), GameScenesManager_PushScenes, il2cpp_utils::FindMethodUnsafe("", "GameScenesManager", "PushScenes", 4));
     INSTALL_HOOK_OFFSETLESS(getLogger(), Saber_ManualUpdate, il2cpp_utils::FindMethod("", "Saber", "ManualUpdate"));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberMovementData_AddNewData, il2cpp_utils::FindMethodUnsafe("", "SaberMovementData", "AddNewData", 3));
 
     INSTALL_HOOK_OFFSETLESS(getLogger(), FixedUpdate, il2cpp_utils::FindMethod("", "OculusVRHelper", "FixedUpdate"));
     // INSTALL_HOOK_OFFSETLESS(LateUpdate, il2cpp_utils::FindMethod("", "SaberBurnMarkSparkles", "LateUpdate"));
