@@ -316,7 +316,7 @@ void TrickManager::Start() {
     _saberT = Saber->get_transform();
     _saberName = Saber->get_name();
     getLogger().debug("saberName: %s", to_utf8(csstrtostr(_saberName)).c_str());
-    _basicSaberName = il2cpp_utils::createcsstr("BasicSaberModel(Clone)");
+    _basicSaberName = il2cpp_utils::newcsstr("BasicSaberModel(Clone)");
 
     getLogger().debug("Setting states to inactive due to start");
     setThrowState(Inactive);
@@ -328,7 +328,7 @@ void TrickManager::Start() {
             VRController_get_transform = CRASH_UNLESS(il2cpp_utils::FindMethod("", "VRController", "get_transform"));
             getLogger().debug("VRCCCCCCCC");
         }
-        auto* fakeTransformName = CRASH_UNLESS(il2cpp_utils::createcsstr("FakeTrickSaberTransform"));
+        auto* fakeTransformName = CRASH_UNLESS(il2cpp_utils::newcsstr("FakeTrickSaberTransform"));
         auto* fakeTransformGO = UnityEngine::GameObject::New_ctor(fakeTransformName); // CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "GameObject", fakeTransformName));
         _fakeTransform = fakeTransformGO->get_transform();
 
@@ -955,7 +955,7 @@ void TrickManager::_InPlaceRotate(float amount) {
         _currentRotation += amount;
         auto rotationTarget = _currentRotation;
 
-        auto rotation = currentRotation + ((rotationTarget - currentRotation) * (UnityEngine::Time::get_deltaTime() * 30));
+        auto rotation = currentRotation + (rotationTarget - currentRotation) * (UnityEngine::Time::get_deltaTime() * 30);
 
         _originalSaberModelT->Rotate(Vector3_Right, rotation, RotateSpace);
     }

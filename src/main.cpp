@@ -185,7 +185,7 @@ static std::vector<System::Type*> tBurnTypes;
 /*void DisableBurnMarks(int saberType) {
     if (!FakeSaber) {
         static auto* tSaber = csTypeOf(Saber*);
-        auto* core = UnityEngine::GameObject::Find(il2cpp_utils::createcsstr("GameCore"));
+        auto* core = UnityEngine::GameObject::Find(il2cpp_utils::newcsstr("GameCore"));
         FakeSaber = core->AddComponent<Saber*>();
 
         FakeSaber->set_enabled(false);
@@ -382,7 +382,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
 
         auto* actionGrid = container;
         BeatSaberUI::CreateText(actionGrid->get_transform(), "Actions Remapping (UI is very funky here)", false);
-//        actionGrid->set_name(il2cpp_utils::createcsstr("Actions"));
+//        actionGrid->set_name(il2cpp_utils::newcsstr("Actions"));
 //        actionGrid->set_spacing(1);
 
         BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().TriggerAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the trigger performs.");

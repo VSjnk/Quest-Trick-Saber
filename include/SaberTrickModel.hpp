@@ -31,7 +31,7 @@
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ColorManager.hpp"
 
-//#include "chroma/shared/SaberAPI.hpp"
+#include "chroma/shared/SaberAPI.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
 #include <string>
@@ -102,7 +102,7 @@ class SaberTrickModel {
         } else {
             TrickModel = UnityEngine::Object::Instantiate(SaberModel);
             CRASH_UNLESS(TrickModel);
-            auto* newName = il2cpp_utils::createcsstr(
+            auto* newName = il2cpp_utils::newcsstr(
                     saberPrefix + to_utf8(csstrtostr(SaberModel->get_name())) + "_" + std::to_string((int) saber->saberType->saberType)
             );
             UnityEngine::Object::SetName(TrickModel, newName);
@@ -112,7 +112,7 @@ class SaberTrickModel {
 
 
 
-            auto* str = CRASH_UNLESS(il2cpp_utils::createcsstr("VRGameCore"));
+            auto* str = CRASH_UNLESS(il2cpp_utils::newcsstr("VRGameCore"));
             auto* vrGameCore = UnityEngine::GameObject::Find(str);
             auto* vrGameCoreT = vrGameCore->get_transform();
             auto* trickModelT = TrickModel->get_transform();
@@ -354,8 +354,6 @@ class SaberTrickModel {
 
     // Update every 5th frame
     void Update() {
-        return;
-
         if (!Modloader::getMods().contains("Chroma")) return;
 
         if (TrickModel->get_activeSelf()) {
@@ -365,7 +363,7 @@ class SaberTrickModel {
                 update = 0;
 
             if (update == 0) {
-                auto color = std::optional(UnityEngine::Color()); //Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
+                auto color = Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
 
                 if (color) {
                     ChangeColorTrickModel(color.value());
