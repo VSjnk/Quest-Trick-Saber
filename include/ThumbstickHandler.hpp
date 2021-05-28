@@ -16,7 +16,7 @@ class ThumbstickHandler : public InputHandler {
         // axis names are from HMLib's VRControllersInputManager
         std::string axis = thumstickDir == (int) ThumbstickDir::Horizontal ? "Horizontal" : "Vertical";
         axis += node == UnityEngine::XR::XRNode::LeftHand ? "LeftHand" : "RightHand";
-        _inputString = il2cpp_utils::newcsstr(axis, il2cpp_utils::StringType::Manual);
+        _inputString = il2cpp_utils::newcsstr(axis);
         IsReversed = getPluginConfig().ReverseThumbstick.GetValue();
     }
 

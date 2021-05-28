@@ -31,7 +31,7 @@
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ColorManager.hpp"
 
-#include "chroma/shared/SaberAPI.hpp"
+//#include "chroma/shared/SaberAPI.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
 #include <string>
@@ -354,6 +354,8 @@ class SaberTrickModel {
 
     // Update every 5th frame
     void Update() {
+        return;
+
         if (!Modloader::getMods().contains("Chroma")) return;
 
         if (TrickModel->get_activeSelf()) {
@@ -363,7 +365,7 @@ class SaberTrickModel {
                 update = 0;
 
             if (update == 0) {
-                auto color = Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
+                auto color = std::optional(UnityEngine::Color()); //Chroma::SaberAPI::getSaberColorSafe(saberScript->get_saberType().value);
 
                 if (color) {
                     ChangeColorTrickModel(color.value());
