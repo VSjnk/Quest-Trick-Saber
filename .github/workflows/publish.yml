@@ -3,7 +3,7 @@ name: Publish QPM Package
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   publish:
@@ -61,10 +61,8 @@ jobs:
           cache-name: cache-qpm-deps
         with:
           path: QPM_Temp
-          key: ${{ runner.os }}-${{ env.cache-name }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-
-            ${{ runner.os }}-${{ env.cache-name }}
+          key: cache-qpm-deps
+          restore-keys: cache-qpm-deps
 
       - name: QPM Restore
         run: |
@@ -125,7 +123,7 @@ jobs:
           echo $url
           echo "::set-output name=upload_url::$url"
         env:
-          response:  ${{ steps.get_release.outputs.data }}
+          response: ${{ steps.get_release.outputs.data }}
       - name: Get Library Name
         id: libname
         run: |

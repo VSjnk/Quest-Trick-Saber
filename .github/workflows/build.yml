@@ -72,10 +72,8 @@ jobs:
           cache-name: cache-qpm-deps
         with:
           path: QPM_Temp
-          key: ${{ env.cache-name }}
-          restore-keys: |
-            ${{ env.cache-name }}-
-            ${{ env.cache-name }}
+          key: cache-qpm-deps
+          restore-keys: cache-qpm-deps
 
       - name: QPM Restore
         run: |
