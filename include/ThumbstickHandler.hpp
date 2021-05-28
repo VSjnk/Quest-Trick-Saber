@@ -24,8 +24,4 @@ class ThumbstickHandler : public InputHandler {
         // if (val != 0) getLogger().debug("ThumbstickHandler input value: %f", val);
         return UnityEngine::Input::GetAxis(_inputString);
     }
-
-    ~ThumbstickHandler() {
-        free(_inputString);
-    }
 };

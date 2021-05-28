@@ -21,8 +21,4 @@ class TriggerHandler : public InputHandler {
         // if (val != 0) getLogger().debug("TriggerHandler input value: %f", val);
         return UnityEngine::Input::GetAxis(_inputString);
     }
-
-    ~TriggerHandler() {
-        free(_inputString);
-    }
 };
