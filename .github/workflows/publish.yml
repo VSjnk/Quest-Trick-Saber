@@ -76,6 +76,10 @@ jobs:
           echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
           echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
 
+      - name: QPM Edit Version
+        run: |
+          ./QPM/QPM package edit version "${{ steps.get_tag_version.outputs.VERSION }}"
+
       - name: Build
         run: |
           cd ${GITHUB_WORKSPACE}
