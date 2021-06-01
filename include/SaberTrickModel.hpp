@@ -13,6 +13,7 @@
 #include "UnityEngine/MeshFilter.hpp"
 #include "UnityEngine/MeshRenderer.hpp"
 #include "UnityEngine/MaterialPropertyBlock.hpp"
+#include "UnityEngine/AudioSource.hpp"
 #include "GlobalNamespace/Saber.hpp"
 #include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "GlobalNamespace/SaberType.hpp"
@@ -118,11 +119,70 @@ class SaberTrickModel {
             auto* trickModelT = TrickModel->get_transform();
 
             trickModelT->SetParent(vrGameCoreT);
-            TrickModel->SetActive(false);
-            OriginalSaberModel->SetActive(true);
+            SetActive(TrickModel,false);
+            SetActive(OriginalSaberModel, true);
         }
 
         getLogger().debug("Leaving SaberTrickModel construction!");
+    }
+
+    void SetActive(UnityEngine::GameObject* go, bool active) {
+        static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
+        static auto zero = UnityEngine::Vector3::get_zero();
+        static auto away = UnityEngine::Vector3(999999, 999999, 999999);
+
+        // We teleport the saber away so it cannot be seen while the animation loads
+        // such as it is with the Katana sabers
+        // We also reset/hide the trail so it doesn't look teleported away
+        if (QosmeticsLoaded) {
+            static auto getQosmeticsColorManager = il2cpp_utils::FindMethod("Qosmetics", "SingletonContainer",
+                                                                            "get_colorManager");
+            auto colorManager = CRASH_UNLESS(
+                    il2cpp_utils::RunMethod<Il2CppObject *>(nullptr, getQosmeticsColorManager));
+
+            auto trails = go->GetComponentsInChildren<GlobalNamespace::SaberTrail *>(!active);
+
+
+            go->get_transform()->set_localPosition(active ? zero : away);
+
+
+            for (int i = 0; i < trails->Length(); i++) {
+                auto trail = trails->get(i);
+
+                if (trail) {
+                    // Hide trail
+                    trail->set_enabled(active);
+                    trail->trailRenderer->meshRenderer->set_enabled(active);
+
+                    // Reset trail data
+                    if (trail->movementData && trail->trailElementCollection) {
+                        trail->ResetTrailData();
+                    }
+
+                    // Reset Qosmetics trail data
+                    // Avoid often, so only when the saber is set to active
+                    if (active) {
+                        try {
+                            static auto QosmeticsTrail_reset = il2cpp_utils::FindMethod("Qosmetics", "QosmeticsTrail",
+                                                                                        "Reset");
+                            static auto QosmeticsTrail_setColorManager = il2cpp_utils::FindMethodUnsafe("Qosmetics",
+                                                                                                        "QosmeticsTrail",
+                                                                                                        "SetColorManager",
+                                                                                                        1);
+                            if (QosmeticsTrail_reset) {
+                                il2cpp_utils::RunMethod(trail, QosmeticsTrail_setColorManager, colorManager);
+                                il2cpp_utils::RunMethod(trail, QosmeticsTrail_reset);
+                            }
+                        } catch (il2cpp_utils::Il2CppUtilsException &e) {
+                            getLogger().error("Qosmetics trail code needs fixing!");
+                        }
+                    }
+                }
+            }
+
+        } else {
+            go->SetActive(active);
+        }
     }
 
     void SetupRigidbody(UnityEngine::Rigidbody* rigidbody, UnityEngine::GameObject* model) {
@@ -163,41 +223,57 @@ class SaberTrickModel {
         if (!basic) return;
         getLogger().debug("Fixing basic trick saber color!");
 
-        GlobalNamespace::SaberModelContainer* saberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer*>(false)->values[0];
+        GlobalNamespace::SaberModelContainer* oldSaberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer*>(false)->values[0];
 
-        GlobalNamespace::SaberTypeObject* _saberTypeObject = saberModelContainer->saber->saberType;
+        GlobalNamespace::SaberTypeObject* _saberTypeObject = oldSaberModelContainer->saber->saberType;
         GlobalNamespace::SaberType saberType = _saberTypeObject->saberType; // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(_saberTypeObject, "saberType"));
         getLogger().debug("saber type: %i", (int) saberType);
 //        CRASH_UNLESS(saberType);
-        auto* saberModelContainerT = saberModelContainer->get_transform();
+        auto* oldSaberModelContainerT = oldSaberModelContainer->get_transform();
         getLogger().debug("saber container");
-        CRASH_UNLESS(saberModelContainerT);
+        CRASH_UNLESS(oldSaberModelContainerT);
 
-        auto* saberModelController = newSaber->GetComponent<GlobalNamespace::SaberModelController*>();
+        auto* newSaberModelController = newSaber->GetComponent<GlobalNamespace::SaberModelController*>();
         getLogger().debug("saber controller");
-        CRASH_UNLESS(saberModelController);
+        CRASH_UNLESS(newSaberModelController);
 
         auto* origModelController = SaberGO->GetComponent<GlobalNamespace::SaberModelController*>(); // CRASH_UNLESS(il2cpp_utils::RunMethod(SaberGO, "GetComponent", tSaberModelController));
-        auto* colorMgr = origModelController->colorManager; // CRASH_UNLESS(il2cpp_utils::GetFieldValue(origModelController, "_colorManager"));
+        auto* origColorMgr = origModelController->colorManager; // CRASH_UNLESS(il2cpp_utils::GetFieldValue(origModelController, "_colorManager"));
         getLogger().debug("saber color manager");
-        CRASH_UNLESS(colorMgr);
-        saberModelController->colorManager = colorMgr;
+        CRASH_UNLESS(origColorMgr);
+        newSaberModelController->colorManager = origColorMgr;
 
-        auto* glows = saberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
+        auto* glows = newSaberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
         getLogger().debug("_setSaberGlowColors.length: %u", glows->Length());
         for (int i = 0; i < glows->Length(); i++) {
             GlobalNamespace::SetSaberGlowColor* obj = glows->values[i];
 
-            obj->colorManager = colorMgr;
+            obj->colorManager = origColorMgr;
         }
 
-        auto* fakeGlows = saberModelController->setSaberFakeGlowColors;
+        auto* fakeGlows = newSaberModelController->setSaberFakeGlowColors;
         getLogger().debug("_setSaberFakeGlowColors.length: %u", fakeGlows->Length());
         for (int i = 0; i < fakeGlows->Length(); i++) {
             GlobalNamespace::SetSaberFakeGlowColor* obj = fakeGlows->values[i];
 
-            obj->colorManager = colorMgr;
+            obj->colorManager = origColorMgr;
 
+        }
+
+
+
+        static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
+
+        if (QosmeticsLoaded) {
+            // Disable audio sources for Qosmetics sabers such as Katana sabers.
+            auto* audioSources = newSaberModelController->GetComponentsInChildren<UnityEngine::AudioSource*>(true);
+            for (int i = 0; i < audioSources->Length(); i++) {
+                auto source = audioSources->get(i);
+
+                if (source) {
+                    source->set_playOnAwake(false);
+                }
+            }
         }
 
         auto* trickT = TrickModel->get_transform(); // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(TrickModel, "transform"));
@@ -210,7 +286,7 @@ class SaberTrickModel {
         trickT->set_rotation(rot);
 
 
-        saberModelController->Init(saberModelContainerT, saberModelContainer->saber);
+        newSaberModelController->Init(oldSaberModelContainerT, oldSaberModelContainer->saber);
 
         // Fix trails
         auto *trailStart = UnityEngine::GameObject::New_ctor();
@@ -270,7 +346,7 @@ class SaberTrickModel {
 
     void ChangeToTrickModel() {
         if (getPluginConfig().EnableTrickCutting.GetValue()) return;
-        TrickModel->SetActive(true);
+        SetActive(TrickModel, true);
 
         auto* trickT = TrickModel->get_transform(); // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(TrickModel, "transform"));
         auto* origT = OriginalSaberModel->get_transform(); // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(OriginalSaberModel, "transform"));
@@ -279,7 +355,7 @@ class SaberTrickModel {
 
         trickT->set_position(pos);
         trickT->set_rotation(rot);
-        OriginalSaberModel->SetActive(false);
+        SetActive(OriginalSaberModel, false);
 
         SaberGO = TrickModel;
     }
@@ -287,8 +363,8 @@ class SaberTrickModel {
     void ChangeToActualSaber() {
         if (getPluginConfig().EnableTrickCutting.GetValue()) return;
 
-        OriginalSaberModel->SetActive(true);
-        TrickModel->SetActive(false);
+        SetActive(OriginalSaberModel, true);
+        SetActive(TrickModel, false);
 
         SaberGO = OriginalSaberModel;
     }
