@@ -148,6 +148,7 @@ class SaberTrickModel {
 
             for (int i = 0; i < trails->Length(); i++) {
                 auto trail = trails->get(i);
+                if (strcmp(trail->klass->namespaze, "Qosmetics") != 0) continue;
 
                 if (trail) {
                     // Hide trail
