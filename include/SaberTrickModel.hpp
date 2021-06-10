@@ -399,7 +399,16 @@ class SaberTrickModel {
         getLogger().debug("Coloring saber model %d", (int) saberScript->get_saberType());
 
         auto *modelController = TrickModel->GetComponentInChildren<GlobalNamespace::SaberModelController *>(true);
-
+        
+        // fix for a (possibly Qosmetics?) bug where one of these caused a nullptr deref on getting the tint color, this early return should make it not crash
+        if (!modelController) {
+            getLogger().error("Didn't find modelcontroller in children, returning...");
+            return;
+        }
+        else if (!modelController->initData) {
+            getLogger().error("initData nullptr, returning...");
+            return;
+        }
 
 //        if (modelController is IColorable colorable)
 //        {
