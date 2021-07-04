@@ -12,6 +12,8 @@
 #include "SaberTrickModel.hpp"
 #include "GlobalNamespace/VRController.hpp"
 #include "GlobalNamespace/IVRPlatformHelper.hpp"
+#include "GlobalNamespace/HapticFeedbackController.hpp"
+#include "GlobalNamespace/HapticFeedbackController_RumbleData.hpp"
 #include "GlobalNamespace/Saber.hpp"
 #include "UnityEngine/Transform.hpp"
 
@@ -107,7 +109,8 @@ class TrickManager {
 		void AddProbe(const UnityEngine::Vector3& vel, const UnityEngine::Vector3& ang);
         UnityEngine::Vector3 GetAverageVelocity();
         UnityEngine::Vector3 GetAverageAngularVelocity();
-        GlobalNamespace::IVRPlatformHelper* _vrPlatformHelper;  			// ::VRPlatformHelper
+        GlobalNamespace::IVRPlatformHelper* _vrPlatformHelper;  			    // ::VRPlatformHelper
+        GlobalNamespace::HapticFeedbackController* _hapticFeedbackController;  	// ::HapticFeedbackController
         ButtonMapping _buttonMapping;
         UnityEngine::BoxCollider* _collider = nullptr;    		// BoxCollider
         UnityEngine::Vector3       _controllerPosition = Vector3_Zero;

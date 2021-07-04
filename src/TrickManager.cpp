@@ -9,10 +9,13 @@
 #include "UnityEngine/AudioSource.hpp"
 #include "main.hpp"
 #include <string>
+#include <algorithm>
+#include "UnityEngine/ScriptableObject.hpp"
+#include "Libraries/HM/HMLib/VR/HapticPresetSO.hpp"
 
 #include "UnityEngine/WaitForEndOfFrame.hpp"
 
-
+using namespace Libraries::HM::HMLib::VR;
 using namespace TrickSaber;
 using namespace custom_types;
 using namespace custom_types::Helpers;
@@ -30,6 +33,7 @@ static UnityEngine::AudioSource* _audioSource;
 static function_ptr_t<void, Il2CppObject*> RigidbodySleep;
 static bool _gamePaused;
 
+static SafePtr<HapticPresetSO> hapticFeedbackThrowReturn;
 
 static const MethodInfo* VRController_get_transform = nullptr;
 static std::unordered_map<GlobalNamespace::VRController*, UnityEngine::Transform*> fakeTransforms;
@@ -269,6 +273,14 @@ void TrickManager::Start2() {
     _saberTrickModel = new SaberTrickModel(Saber, saberGO, saberModelT == basicSaberT || getPluginConfig().EnableTrickCutting.GetValue());
     // note that this is the transform of the whole Saber (as opposed to just the model) iff TrickCutting
     _originalSaberModelT = saberGO->get_transform();
+
+
+    _hapticFeedbackController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::HapticFeedbackController*>();
+
+    hapticFeedbackThrowReturn.emplace(UnityEngine::ScriptableObject::CreateInstance<HapticPresetSO*>());
+    hapticFeedbackThrowReturn->duration = 0.15f;
+    hapticFeedbackThrowReturn->strength = 1.2f;
+    hapticFeedbackThrowReturn->frequency = 0.3f;
 }
 
 void TrickManager::StaticClear() {
@@ -424,9 +436,6 @@ void TrickManager::Update() {
         VRController->Update(); // sets position and pre-_currentRotation
     }
 
-    if (_saberTrickModel)
-        _saberTrickModel->Update();
-
     // Note: if TrickCutting, during throw, these properties are redirected to an unused object
     _controllerPosition = VRController->get_position();
     _controllerRotation = VRController->get_rotation();
@@ -538,7 +547,7 @@ void TrickManager::CheckButtons() {
 //    getLogger().debug("replay mode val: %s", replayMode);
 
     // TODO: Remove false condition here when replay fixes bug
-    if (replayMode && (strcmp(replayMode, "true") == 0)) return;
+    if (replayMode && strcmp(replayMode, "true") == 0) return;
 
     float power;
 
@@ -550,22 +559,17 @@ void TrickManager::CheckButtons() {
     if (!objectDestroyTimes.empty()) {
 //        std::vector<int64_t> copyObjectDestroyTimes = objectDestroyTimes;
         getLogger().debug("Object destroy");
-        std::vector<std::vector<int64_t>::iterator> iteratorV {};
         for (auto it = objectDestroyTimes.begin(); it != objectDestroyTimes.end(); it++) {
-            if (!*it) break;
-
             auto destroyTime = *it;
+
+            if (!destroyTime)
+                continue;
 
             if (getTimeMillis() - destroyTime > 700) {
                 objectCount--;
                 if (objectCount < 0) objectCount = 0;
-                iteratorV.push_back(it);
+                it = objectDestroyTimes.erase(it);
             }
-        }
-
-        for (auto& it : iteratorV) {
-            if (*it)
-                objectDestroyTimes.erase(it);
         }
         getLogger().debug("Destroyed objects");
     }
@@ -854,7 +858,8 @@ void TrickManager::ThrowEnd() {
 
     // Trigger vibration when saber returns
     if (getPluginConfig().VibrateOnReturn.GetValue())
-        _vrPlatformHelper->TriggerHapticPulse(node, 2, 2.2f, 0.3f);
+        _hapticFeedbackController->PlayHapticFeedback(node, (HapticPresetSO *) hapticFeedbackThrowReturn);
+//        _vrPlatformHelper->TriggerHapticPulse(node, 2, 2.2f, 0.3f);
 
     TrickEnd();
 }
@@ -905,31 +910,33 @@ Coroutine TrickManager::CompleteRotation() {
         largestSpinSpeed = _finalSpinSpeed < 0 ? -minSpeed : minSpeed;
     }
 
+
+
     auto threshold = std::abs(_finalSpinSpeed) + 0.1f;
-    auto angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), UnityEngine::Quaternion::get_identity());
+    auto angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
 
     while (angle > threshold)
     {
         _originalSaberModelT->Rotate(UnityEngine::Vector3::get_right() * _finalSpinSpeed);
-        angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), UnityEngine::Quaternion::get_identity());
+        angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
         co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
     }
 
-    _originalSaberModelT->set_localRotation(UnityEngine::Quaternion::get_identity());
+    _originalSaberModelT->set_localRotation(Quaternion_Identity);
     setSpinState(Inactive);
     TrickEnd();
 }
 
 Coroutine TrickManager::LerpToOriginalRotation() {
     auto rot = _originalSaberModelT->get_localRotation();
-    while (UnityEngine::Quaternion::Angle(rot, UnityEngine::Quaternion::get_identity()) > 5.0f)
+    while (UnityEngine::Quaternion::Angle(rot, Quaternion_Identity) > 5.0f)
     {
-        rot = UnityEngine::Quaternion::Lerp(rot, UnityEngine::Quaternion::get_identity(), UnityEngine::Time::get_deltaTime() * 20);
+        rot = UnityEngine::Quaternion::Lerp(rot, Quaternion_Identity, UnityEngine::Time::get_deltaTime() * 20);
         _originalSaberModelT->set_localRotation(rot);
         co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
     }
 
-    _originalSaberModelT->set_localRotation(UnityEngine::Quaternion::get_identity());
+    _originalSaberModelT->set_localRotation(Quaternion_Identity);
 
     setSpinState(Inactive);
     TrickEnd();
@@ -951,13 +958,8 @@ void TrickManager::_InPlaceRotate(float amount) {
     if (!getPluginConfig().EnableTrickCutting.GetValue()) {
         _originalSaberModelT->Rotate(Vector3_Right, amount, RotateSpace);
     } else {
-        auto currentRotation = _currentRotation;
         _currentRotation += amount;
-        auto rotationTarget = _currentRotation;
-
-        auto rotation = currentRotation + (rotationTarget - currentRotation) * (UnityEngine::Time::get_deltaTime() * 30);
-
-        _originalSaberModelT->Rotate(Vector3_Right, rotation, RotateSpace);
+        _originalSaberModelT->Rotate(Vector3_Right, _currentRotation, RotateSpace);
     }
 }
 
