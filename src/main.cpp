@@ -4,6 +4,8 @@
 #include "ConfigEnums.hpp"
 #include "UnityEngine/Resources.hpp"
 #include "GlobalNamespace/GameSongController.hpp"
+#include "GlobalNamespace/BeatmapObjectSpawnController.hpp"
+#include "GlobalNamespace/BeatmapObjectManager.hpp"
 #include "UnityEngine/SceneManagement/SceneManager.hpp"
 #include "GlobalNamespace/GamePause.hpp"
 #include "GlobalNamespace/OculusVRHelper.hpp"
@@ -79,7 +81,7 @@ extern "C" void setup(ModInfo& info) {
 //Saber* RealSaber = nullptr;
 
 
-MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, UnityEngine::SceneManagement::Scene scene, UnityEngine::SceneManagement::LoadSceneMode mode) {
+MAKE_HOOK_MATCH(SceneManager_Internal_SceneLoaded, &UnityEngine::SceneManagement::SceneManager::Internal_SceneLoaded, void, UnityEngine::SceneManagement::Scene scene, UnityEngine::SceneManagement::LoadSceneMode mode) {
     getLogger().info("SceneManager_Internal_SceneLoaded");
     if (auto* nameOpt = scene.get_name()) {
         auto* name = nameOpt;
@@ -94,7 +96,7 @@ MAKE_HOOK_OFFSETLESS(SceneManager_Internal_SceneLoaded, void, UnityEngine::Scene
     SceneManager_Internal_SceneLoaded(scene, mode);
 }
 
-MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, GlobalNamespace::GameScenesManager* self, GlobalNamespace::ScenesTransitionSetupDataSO* scenesTransitionSetupData,
+MAKE_HOOK_MATCH(GameScenesManager_PushScenes, &GlobalNamespace::GameScenesManager::PushScenes, void, GlobalNamespace::GameScenesManager* self, GlobalNamespace::ScenesTransitionSetupDataSO* scenesTransitionSetupData,
                      float minDuration, System::Action* afterMinDurationCallback,
                      System::Action_1<Zenject::DiContainer*>* finishCallback) {
     getLogger().debug("GameScenesManager_PushScenes");
@@ -112,7 +114,7 @@ MAKE_HOOK_OFFSETLESS(GameScenesManager_PushScenes, void, GlobalNamespace::GameSc
     getLogger().debug("Leaving GameScenesManager_PushScenes");
 }
 
-MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
+MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* self) {
     SaberManager_Start(self);
     saberManager = self;
     getLogger().debug("SaberManager_Start");
@@ -152,7 +154,7 @@ MAKE_HOOK_OFFSETLESS(SaberManager_Start, void, SaberManager* self) {
 
 
 
-MAKE_HOOK_OFFSETLESS(Saber_ManualUpdate, void, Saber* self) {
+MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
     TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
 
     Saber_ManualUpdate(self);
@@ -223,12 +225,12 @@ int64_t getTimeMillis() {
 }
 
 
-MAKE_HOOK_OFFSETLESS(FixedUpdate, void, GlobalNamespace::OculusVRHelper* self) {
+MAKE_HOOK_MATCH(FixedUpdate, &OculusVRHelper::FixedUpdate, void, GlobalNamespace::OculusVRHelper* self) {
     FixedUpdate(self);
     TrickManager::StaticFixedUpdate();
 }
 
-MAKE_HOOK_OFFSETLESS(Pause, void, GlobalNamespace::GamePause* self) {
+MAKE_HOOK_MATCH(Pause, &GamePause::Pause, void, GlobalNamespace::GamePause* self) {
     leftSaber.PauseTricks();
     rightSaber.PauseTricks();
     Pause(self);
@@ -236,7 +238,7 @@ MAKE_HOOK_OFFSETLESS(Pause, void, GlobalNamespace::GamePause* self) {
     getLogger().debug("pause: %i", self->pause);
 }
 
-MAKE_HOOK_OFFSETLESS(Resume, void, GlobalNamespace::GamePause* self) {
+MAKE_HOOK_MATCH(Resume, &GamePause::Resume, void, GlobalNamespace::GamePause* self) {
     Resume(self);
     TrickManager::StaticResume();
     leftSaber.ResumeTricks();
@@ -244,19 +246,19 @@ MAKE_HOOK_OFFSETLESS(Resume, void, GlobalNamespace::GamePause* self) {
     getLogger().debug("pause: %i", self->pause);
 }
 
-MAKE_HOOK_OFFSETLESS(AudioTimeSyncController_Start, void, AudioTimeSyncController* self) {
+MAKE_HOOK_MATCH(AudioTimeSyncController_Start, &AudioTimeSyncController::Start, void, AudioTimeSyncController* self) {
     AudioTimeSyncController_Start(self);
     audioTimeSyncController = self;
     getLogger().debug("audio time controller: %i");
 }
 
-MAKE_HOOK_OFFSETLESS(SaberClashChecker_AreSabersClashing, bool, SaberClashChecker* self) {
-    bool val = SaberClashChecker_AreSabersClashing(self);
+MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabersClashing, bool, SaberClashChecker* self, UnityEngine::Vector3& clashingPoint) {
+    bool val = SaberClashChecker_AreSabersClashing(self, clashingPoint);
 
     return (!rightSaber.isDoingTricks() && !leftSaber.isDoingTricks()) && val;
 }
 
-MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* self) {
+MAKE_HOOK_MATCH(VRController_Update, &VRController::Update, void, GlobalNamespace::VRController* self) {
     VRController_Update(self);
 
     if (self->get_node() == UnityEngine::XR::XRNode::LeftHand) {
@@ -269,7 +271,7 @@ MAKE_HOOK_OFFSETLESS(VRController_Update, void, GlobalNamespace::VRController* s
 }
 
 
-MAKE_HOOK_OFFSETLESS(SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData, float cutDirectionAngleOffset) {
+MAKE_HOOK_MATCH(SpawnNote, &BeatmapObjectSpawnController::SpawnBasicNote, void, BeatmapObjectSpawnController* self, GlobalNamespace::NoteData* noteData, float cutDirectionAngleOffset) {
     if (getPluginConfig().NoTricksWhileNotes.GetValue())
         objectCount++;
 //    getLogger().debug("Object count note increase %d", objectCount);
@@ -277,7 +279,7 @@ MAKE_HOOK_OFFSETLESS(SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData
     SpawnNote(self, noteData, cutDirectionAngleOffset);
 }
 
-MAKE_HOOK_OFFSETLESS(SpawnBomb, void, Il2CppObject* self, Il2CppObject* noteData) {
+MAKE_HOOK_MATCH(SpawnBomb, &BeatmapObjectSpawnController::SpawnBombNote, void, BeatmapObjectSpawnController* self, GlobalNamespace::NoteData* noteData) {
     if (getPluginConfig().NoTricksWhileNotes.GetValue() )
         objectCount++;
 //    getLogger().debug("Object count bomb increase %d", objectCount);
@@ -285,7 +287,7 @@ MAKE_HOOK_OFFSETLESS(SpawnBomb, void, Il2CppObject* self, Il2CppObject* noteData
     SpawnBomb(self, noteData);
 }
 
-MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteController, Il2CppObject* noteCutInfo) {
+MAKE_HOOK_MATCH(NoteCut, &BeatmapObjectManager::HandleNoteControllerNoteWasCut, void, BeatmapObjectManager* self, GlobalNamespace::NoteController* noteController, GlobalNamespace::NoteCutInfo& noteCutInfo) {
     if (getPluginConfig().NoTricksWhileNotes.GetValue() ) {
         objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count note cut decrease %d", objectCount);
@@ -296,7 +298,7 @@ MAKE_HOOK_OFFSETLESS(NoteCut, void, Il2CppObject* self, Il2CppObject* noteContro
     NoteCut(self, noteController, noteCutInfo);
 }
 
-MAKE_HOOK_OFFSETLESS(NoteMissed, void, Il2CppObject* self, Il2CppObject* noteController) {
+MAKE_HOOK_MATCH(NoteMissed, &BeatmapObjectManager::HandleNoteControllerNoteWasMissed, void, BeatmapObjectManager* self, GlobalNamespace::NoteController* noteController) {
     if (getPluginConfig().NoTricksWhileNotes.GetValue()) {
         objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count decrease %d", objectCount);
@@ -406,31 +408,31 @@ extern "C" void load() {
     // TODO: config menus
     getLogger().info("Installing hooks...");
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SceneManager_Internal_SceneLoaded, il2cpp_utils::FindMethodUnsafe("UnityEngine.SceneManagement", "SceneManager", "Internal_SceneLoaded", 2));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), GameScenesManager_PushScenes, il2cpp_utils::FindMethodUnsafe("", "GameScenesManager", "PushScenes", 4));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), Saber_ManualUpdate, il2cpp_utils::FindMethod("", "Saber", "ManualUpdate"));
+    INSTALL_HOOK(getLogger(), SceneManager_Internal_SceneLoaded);
+    INSTALL_HOOK(getLogger(), GameScenesManager_PushScenes);
+    INSTALL_HOOK(getLogger(), Saber_ManualUpdate);
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), FixedUpdate, il2cpp_utils::FindMethod("", "OculusVRHelper", "FixedUpdate"));
-    // INSTALL_HOOK_OFFSETLESS(LateUpdate, il2cpp_utils::FindMethod("", "SaberBurnMarkSparkles", "LateUpdate"));
+    INSTALL_HOOK(getLogger(), FixedUpdate);
+    // INSTALL_HOOK(LateUpdate, il2cpp_utils::FindMethod("", "SaberBurnMarkSparkles", "LateUpdate"));
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), Pause, il2cpp_utils::FindMethod("", "GamePause", "Pause"));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), Resume, il2cpp_utils::FindMethod("", "GamePause", "Resume"));
+    INSTALL_HOOK(getLogger(), Pause);
+    INSTALL_HOOK(getLogger(), Resume);
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), AudioTimeSyncController_Start, il2cpp_utils::FindMethod("", "AudioTimeSyncController", "Start"));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberManager_Start, il2cpp_utils::FindMethod("", "SaberManager", "Start"));
+    INSTALL_HOOK(getLogger(), AudioTimeSyncController_Start);
+    INSTALL_HOOK(getLogger(), SaberManager_Start);
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashChecker_AreSabersClashing, il2cpp_utils::FindMethodUnsafe("", "SaberClashChecker", "AreSabersClashing", 1));
-//    INSTALL_HOOK_OFFSETLESS(getLogger(), SaberClashEffect_Disable, il2cpp_utils::FindMethod("", "SaberClashEffect", "OnDisable"));
+    INSTALL_HOOK(getLogger(), SaberClashChecker_AreSabersClashing);
+//    INSTALL_HOOK(getLogger(), SaberClashEffect_Disable, il2cpp_utils::FindMethod("", "SaberClashEffect", "OnDisable"));
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethod("", "VRController", "Update"));
+    INSTALL_HOOK(getLogger(), VRController_Update);
 
 
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBasicNote", 2));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), SpawnBomb, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnBombNote", 1));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteMissed, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteControllerNoteWasMissed", 1));
-    INSTALL_HOOK_OFFSETLESS(getLogger(), NoteCut, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "HandleNoteControllerNoteWasCut", 2));
+    INSTALL_HOOK(getLogger(), SpawnNote);
+    INSTALL_HOOK(getLogger(), SpawnBomb);
+    INSTALL_HOOK(getLogger(), NoteMissed);
+    INSTALL_HOOK(getLogger(), NoteCut);
 
-//    INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_Update, il2cpp_utils::FindMethodUnsafe("", "GameSongController", "StartSong", 1));
+//    INSTALL_HOOK(getLogger(), VRController_Update, il2cpp_utils::FindMethodUnsafe("", "GameSongController", "StartSong", 1));
 
     tBurnTypes.push_back(csTypeOf(GlobalNamespace::SaberBurnMarkArea*));
     tBurnTypes.push_back(csTypeOf(GlobalNamespace::SaberBurnMarkSparkles*));

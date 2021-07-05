@@ -4,6 +4,7 @@
 #include <dlfcn.h>
 #include "GlobalNamespace/AudioTimeSyncController.hpp"
 #include "beatsaber-hook/shared/utils/logging.hpp"
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "GlobalNamespace/SaberClashChecker.hpp"
 #include "GlobalNamespace/SaberManager.hpp"
 

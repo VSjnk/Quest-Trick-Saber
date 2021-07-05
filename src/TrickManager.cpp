@@ -38,7 +38,7 @@ static SafePtr<HapticPresetSO> hapticFeedbackThrowReturn;
 static const MethodInfo* VRController_get_transform = nullptr;
 static std::unordered_map<GlobalNamespace::VRController*, UnityEngine::Transform*> fakeTransforms;
 static bool VRController_transform_is_hooked = false;
-MAKE_HOOK_OFFSETLESS(VRController_get_transform_hook, UnityEngine::Transform*, GlobalNamespace::VRController* self) {
+MAKE_HOOK_FIND(VRController_get_transform_hook, classof(GlobalNamespace::VRController*), "get_transform", UnityEngine::Transform*, GlobalNamespace::VRController* self) {
 
 
     if (!getPluginConfig().EnableTrickCutting.GetValue())
@@ -735,7 +735,7 @@ void TrickManager::ThrowStart() {
         if (getPluginConfig().EnableTrickCutting.GetValue()) {
             fakeTransforms.emplace(VRController, _fakeTransform);
             if (!VRController_transform_is_hooked) {
-                INSTALL_HOOK_OFFSETLESS(getLogger(), VRController_get_transform_hook, VRController_get_transform);
+                INSTALL_HOOK(getLogger(), VRController_get_transform_hook);
                 VRController_transform_is_hooked = true;
             }
         }
