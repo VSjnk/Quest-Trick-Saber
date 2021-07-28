@@ -301,7 +301,7 @@ void TrickManager::Clear() {
 void TrickManager::Start() {
     getLogger().debug("Audio");
     if (!audioTimeSyncController) {
-        getLogger().debug("Audio controllers: %i", audioTimeSyncController);
+        getLogger().debug("Audio controllers: %p", audioTimeSyncController);
         // TODO: Is necessary?
 //        CRASH_UNLESS(audioTimeSyncController);
     }

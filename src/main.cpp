@@ -54,7 +54,7 @@ int clamp(int min, int max, int current) {
 
 // Returns a logger, useful for printing debug messages
 Logger& getLogger() {
-    static auto* logger = new Logger(modInfo);
+    static auto* logger = new Logger(modInfo, LoggerOptions(false, true));
     return *logger;
 }
 
@@ -131,7 +131,7 @@ MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* se
     auto *vrControllers = UnityEngine::Resources::FindObjectsOfTypeAll<VRController*>();
 
 
-    getLogger().info("VR controllers: %i", vrControllers->Length());
+    getLogger().info("VR controllers: %i", (int) vrControllers->Length());
 
 
 
@@ -211,7 +211,7 @@ void EnableBurnMarks(int saberType) {
     for (auto *type : tBurnTypes) {
         auto *components = UnityEngine::Object::FindObjectsOfType(type);
         for (int i = 0; i < components->Length(); i++) {
-            getLogger().debug("Burn Type: %s", components->values[i]->get_name());
+            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(components->values[i]->get_name())).c_str());
             auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components->values[i], "_sabers"));
             sabers->values[saberType] = saberType ? saberManager->rightSaber : saberManager->leftSaber;
         }
@@ -249,10 +249,10 @@ MAKE_HOOK_MATCH(Resume, &GamePause::Resume, void, GlobalNamespace::GamePause* se
 MAKE_HOOK_MATCH(AudioTimeSyncController_Start, &AudioTimeSyncController::Start, void, AudioTimeSyncController* self) {
     AudioTimeSyncController_Start(self);
     audioTimeSyncController = self;
-    getLogger().debug("audio time controller: %i");
+    getLogger().debug("audio time controller: %p", audioTimeSyncController);
 }
 
-MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabersClashing, bool, SaberClashChecker* self, UnityEngine::Vector3& clashingPoint) {
+MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabersClashing, bool, SaberClashChecker* self, ByRef<UnityEngine::Vector3> clashingPoint) {
     bool val = SaberClashChecker_AreSabersClashing(self, clashingPoint);
 
     return (!rightSaber.isDoingTricks() && !leftSaber.isDoingTricks()) && val;
@@ -287,7 +287,7 @@ MAKE_HOOK_MATCH(SpawnBomb, &BeatmapObjectSpawnController::SpawnBombNote, void, B
     SpawnBomb(self, noteData);
 }
 
-MAKE_HOOK_MATCH(NoteCut, &BeatmapObjectManager::HandleNoteControllerNoteWasCut, void, BeatmapObjectManager* self, GlobalNamespace::NoteController* noteController, GlobalNamespace::NoteCutInfo& noteCutInfo) {
+MAKE_HOOK_MATCH(NoteCut, &BeatmapObjectManager::HandleNoteControllerNoteWasCut, void, BeatmapObjectManager* self, GlobalNamespace::NoteController* noteController, ByRef<GlobalNamespace::NoteCutInfo> noteCutInfo) {
     if (getPluginConfig().NoTricksWhileNotes.GetValue() ) {
         objectDestroyTimes.push_back(getTimeMillis());
 //    getLogger().debug("Object count note cut decrease %d", objectCount);

@@ -170,8 +170,11 @@ class SaberTrickModel {
                                                                                                         "SetColorManager",
                                                                                                         1);
                             if (QosmeticsTrail_reset) {
+                                getLogger().debug("Trail reset!");
                                 il2cpp_utils::RunMethod(trail, QosmeticsTrail_setColorManager, colorManager);
                                 il2cpp_utils::RunMethod(trail, QosmeticsTrail_reset);
+                            } else {
+                                getLogger().error("Qosmetics trail code needs fixing!");
                             }
                         } catch (il2cpp_utils::Il2CppUtilsException &e) {
                             getLogger().error("Qosmetics trail code needs fixing!");
@@ -245,7 +248,7 @@ class SaberTrickModel {
         newSaberModelController->colorManager = origColorMgr;
 
         auto* glows = newSaberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
-        getLogger().debug("_setSaberGlowColors.length: %u", glows->Length());
+        getLogger().debug("_setSaberGlowColors.length: %i", (int) glows->Length());
         for (int i = 0; i < glows->Length(); i++) {
             GlobalNamespace::SetSaberGlowColor* obj = glows->values[i];
 
@@ -253,7 +256,7 @@ class SaberTrickModel {
         }
 
         auto* fakeGlows = newSaberModelController->setSaberFakeGlowColors;
-        getLogger().debug("_setSaberFakeGlowColors.length: %u", fakeGlows->Length());
+        getLogger().debug("_setSaberFakeGlowColors.length: %i", (int) fakeGlows->Length());
         for (int i = 0; i < fakeGlows->Length(); i++) {
             GlobalNamespace::SetSaberFakeGlowColor* obj = fakeGlows->values[i];
 
@@ -337,7 +340,7 @@ class SaberTrickModel {
     void FixTrails(UnityEngine::GameObject* model) {
         auto *trails = model->GetComponentsInChildren<GlobalNamespace::SaberTrail*>(true);
 
-        getLogger().debug("trick saber trails.length: %u", trails->Length());
+        getLogger().debug("trick saber trails.length: %i", (int) trails->Length());
         for (int i = 0; i < trails->Length(); i++)  {
             GlobalNamespace::SaberTrail *obj = trails->values[i];
 
