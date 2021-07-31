@@ -154,7 +154,7 @@ void TrickManager::AddProbe(const Sombrero::FastVector3& vel, const Sombrero::Fa
 Sombrero::FastVector3 TrickManager::GetAverageVelocity() {
     Sombrero::FastVector3 avg = Vector3_Zero;
     for (auto & i : _velocityBuffer) {
-        avg = avg + i;
+        avg += i;
     }
     return avg / (float) _velocityBuffer.size();
 }
@@ -162,7 +162,7 @@ Sombrero::FastVector3 TrickManager::GetAverageVelocity() {
 Sombrero::FastVector3 TrickManager::GetAverageAngularVelocity() {
     Sombrero::FastVector3 avg = Vector3_Zero;
     for (int i = 0; i < _velocityBuffer.size(); i++) {
-        avg = avg + _angularVelocityBuffer[i];
+        avg += _angularVelocityBuffer[i];
     }
     return avg / (float) _velocityBuffer.size();
 }
