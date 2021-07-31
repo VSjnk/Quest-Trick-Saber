@@ -1,5 +1,6 @@
-#include "TrickSaberAPI.hpp"
 #include "TrickManager.hpp"
+#include "TrickSaberAPI.hpp"
+
 
 
 

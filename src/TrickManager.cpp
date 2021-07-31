@@ -118,87 +118,17 @@ float getDeltaTime() {
 }
 
 
-UnityEngine::Vector3 Vector3_Multiply(const UnityEngine::Vector3 &vec, float scalar) {
-    UnityEngine::Vector3 result;
-    result.x = vec.x * scalar;
-    result.y = vec.y * scalar;
-    result.z = vec.z * scalar;
-    return result;
-}
-UnityEngine::Vector3 Vector3_Divide(const UnityEngine::Vector3 &vec, float scalar) {
-    UnityEngine::Vector3 result;
-    result.x = vec.x / scalar;
-    result.y = vec.y / scalar;
-    result.z = vec.z / scalar;
-    return result;
-}
-
-float Vector3_Distance(const UnityEngine::Vector3 &a, const UnityEngine::Vector3 &b) {
-    float dx = a.x - b.x;
-    float dy = a.y - b.y;
-    float dz = a.z - b.z;
-    return sqrt(dx * dx + dy * dy + dz * dz);
-}
-
-float Vector3_Magnitude(const UnityEngine::Vector3 &v) {
-    return sqrt((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
-}
-
-UnityEngine::Vector3 Vector3_Add(const UnityEngine::Vector3 &a, const UnityEngine::Vector3 &b) {
-    UnityEngine::Vector3 result;
-    result.x = a.x + b.x;
-    result.y = a.y + b.y;
-    result.z = a.z + b.z;
-    return result;
-}
-UnityEngine::Vector3 Vector3_Subtract(const UnityEngine::Vector3 &a, const UnityEngine::Vector3 &b) {
-    UnityEngine::Vector3 result;
-    result.x = a.x - b.x;
-    result.y = a.y - b.y;
-    result.z = a.z - b.z;
-    return result;
-}
-
-UnityEngine::Quaternion Quaternion_Multiply(const UnityEngine::Quaternion &lhs, const UnityEngine::Quaternion &rhs) {
-    return UnityEngine::Quaternion{
-        lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
-        lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
-        lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
-        lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z
-    };
-}
-
 // Copied from DnSpy
-UnityEngine::Vector3 Quaternion_Multiply(const UnityEngine::Quaternion& rotation, const UnityEngine::Vector3& point) {
-	float num = rotation.x * 2.0f;
-	float num2 = rotation.y * 2.0f;
-	float num3 = rotation.z * 2.0f;
-	float num4 = rotation.x * num;
-	float num5 = rotation.y * num2;
-	float num6 = rotation.z * num3;
-	float num7 = rotation.x * num2;
-	float num8 = rotation.x * num3;
-	float num9 = rotation.y * num3;
-	float num10 = rotation.w * num;
-	float num11 = rotation.w * num2;
-	float num12 = rotation.w * num3;
-    UnityEngine::Vector3 result;
-	result.x = (1.0f - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
-	result.y = (num7 + num12) * point.x + (1.0f - (num4 + num6)) * point.y + (num9 - num10) * point.z;
-	result.z = (num8 - num11) * point.x + (num9 + num10) * point.y + (1.0f - (num4 + num5)) * point.z;
-	return result;
-}
-
-UnityEngine::Quaternion Quaternion_Inverse(const UnityEngine::Quaternion &q) {
+Sombrero::FastQuaternion Quaternion_Inverse(const Sombrero::FastQuaternion &q) {
 
 //    Quaternion ret = CRASH_UNLESS(il2cpp_utils::RunMethod<Quaternion>(cQuaternion, "Inverse", q));
-    return UnityEngine::Quaternion::Inverse(q);
+    return Sombrero::FastQuaternion::Inverse(q);
 }
 
-UnityEngine::Vector3 GetAngularVelocity(const UnityEngine::Quaternion& foreLastFrameRotation, const UnityEngine::Quaternion& lastFrameRotation)
+Sombrero::FastVector3 GetAngularVelocity(const Sombrero::FastQuaternion& foreLastFrameRotation, const Sombrero::FastQuaternion& lastFrameRotation)
 {
     auto foreLastInv = Quaternion_Inverse(foreLastFrameRotation);
-    auto q = Quaternion_Multiply(lastFrameRotation, foreLastInv);
+    auto q = lastFrameRotation * foreLastInv;
     if (abs(q.w) > (1023.5f / 1024.0f)) {
         return Vector3_Zero;
     }
@@ -214,27 +144,27 @@ UnityEngine::Vector3 GetAngularVelocity(const UnityEngine::Quaternion& foreLastF
     return {q.x * gain, q.y * gain, q.z * gain};
 }
 
-void TrickManager::AddProbe(const UnityEngine::Vector3& vel, const UnityEngine::Vector3& ang) {
+void TrickManager::AddProbe(const Sombrero::FastVector3& vel, const Sombrero::FastVector3& ang) {
     if (_currentProbeIndex >= _velocityBuffer.size()) _currentProbeIndex = 0;
     _velocityBuffer[_currentProbeIndex] = vel;
     _angularVelocityBuffer[_currentProbeIndex] = ang;
     _currentProbeIndex++;
 }
 
-UnityEngine::Vector3 TrickManager::GetAverageVelocity() {
-    UnityEngine::Vector3 avg = Vector3_Zero;
+Sombrero::FastVector3 TrickManager::GetAverageVelocity() {
+    Sombrero::FastVector3 avg = Vector3_Zero;
     for (auto & i : _velocityBuffer) {
-        avg = Vector3_Add(avg, i);
+        avg = avg + i;
     }
-    return Vector3_Divide(avg, _velocityBuffer.size());
+    return avg / (float) _velocityBuffer.size();
 }
 
-UnityEngine::Vector3 TrickManager::GetAverageAngularVelocity() {
-    UnityEngine::Vector3 avg = Vector3_Zero;
+Sombrero::FastVector3 TrickManager::GetAverageAngularVelocity() {
+    Sombrero::FastVector3 avg = Vector3_Zero;
     for (int i = 0; i < _velocityBuffer.size(); i++) {
-        avg = Vector3_Add(avg, _angularVelocityBuffer[i]);
+        avg = avg + _angularVelocityBuffer[i];
     }
-    return Vector3_Divide(avg, _velocityBuffer.size());
+    return avg / (float) _velocityBuffer.size();
 }
 
 UnityEngine::Transform* TrickManager::FindBasicSaberTransform() {
@@ -322,8 +252,8 @@ void TrickManager::Start() {
     _buttonMapping = ButtonMapping(_isLeftSaber);
 
     int velBufferSize = getPluginConfig().VelocityBufferSize.GetValue();
-    _velocityBuffer = std::vector<UnityEngine::Vector3>(velBufferSize);
-    _angularVelocityBuffer = std::vector<UnityEngine::Vector3>(velBufferSize);
+    _velocityBuffer = std::vector<Sombrero::FastVector3>(velBufferSize);
+    _angularVelocityBuffer = std::vector<Sombrero::FastVector3>(velBufferSize);
 
     _saberT = Saber->get_transform();
     _saberName = Saber->get_name();
@@ -440,8 +370,8 @@ void TrickManager::Update() {
     _controllerPosition = VRController->get_position();
     _controllerRotation = VRController->get_rotation();
 
-    auto dPos = Vector3_Subtract(_controllerPosition, _prevPos);
-    auto velocity = Vector3_Divide(dPos, getDeltaTime());
+    auto dPos = _controllerPosition - _prevPos;
+    auto velocity = dPos / getDeltaTime();
     _angularVelocity = GetAngularVelocity(_prevRot, _controllerRotation);
 
     if (_fakeTransform) {
@@ -450,26 +380,26 @@ void TrickManager::Update() {
 //                          to_utf8(csstrtostr(VRController->get_transform()->get_name())).c_str());
     }
 
-    auto dCon = Vector3_Subtract(_prevPos,_controllerPosition);
-    float distanceController = Vector3_Magnitude(dCon);
+    auto dCon = _prevPos - _controllerPosition;
+    float distanceController = dCon.Magnitude();
 
     // float mag = Vector3_Magnitude(_angularVelocity);
     // if (mag) getLogger().debug("angularVelocity.x: %f, .y: %f, mag: %f", _angularVelocity.x, _angularVelocity.y, mag);
     AddProbe(velocity, _angularVelocity);
-    _saberSpeed = Vector3_Magnitude(velocity);
+    _saberSpeed = velocity.Magnitude();
     _prevPos = _controllerPosition;
     _prevRot = _controllerRotation;
 
     // TODO: move these to LateUpdate?
     if (_throwState == Ending) {
-        UnityEngine::Vector3 saberPos = _saberTrickModel->Rigidbody->get_position();
+        Sombrero::FastVector3 saberPos = _saberTrickModel->Rigidbody->get_position();
 
-        UnityEngine::Vector3 saberLogPos = _saberTrickModel->Rigidbody->get_transform()->get_localPosition();
+        Sombrero::FastVector3 saberLogPos = _saberTrickModel->Rigidbody->get_transform()->get_localPosition();
 
 //        getLogger().debug("Saber (%f %f %f) and controller pos (%f %f %f) and dist %f", saberLogPos.x, saberLogPos.y, saberLogPos.z, _controllerPosition.x, _controllerPosition.y, _controllerPosition.z, distanceController);
 
-        auto d = Vector3_Subtract(_controllerPosition, saberPos);
-        float distance = Vector3_Magnitude(d);
+        auto d = _controllerPosition - saberPos;
+        float distance = d.Magnitude();
 
         if (distance <= getPluginConfig().ControllerSnapThreshold.GetValue()) {
             ThrowEnd();
@@ -477,7 +407,7 @@ void TrickManager::Update() {
             float returnSpeed = fmax(distance, 1.0f) * getPluginConfig().ReturnSpeed.GetValue();
 //            getLogger().debug("distance: %f; return speed: %f", distance, returnSpeed);
             auto dirNorm = d.get_normalized();
-            auto newVel = Vector3_Multiply(dirNorm, returnSpeed);
+            auto newVel = dirNorm * returnSpeed;
 
             _saberTrickModel->Rigidbody->set_velocity(newVel);
         }
@@ -701,9 +631,9 @@ void TrickManager::ThrowStart() {
         auto* rigidBody = _saberTrickModel->Rigidbody;
         rigidBody->set_isKinematic(false);
 
-        UnityEngine::Vector3 velo = GetAverageVelocity();
+        Sombrero::FastVector3 velo = GetAverageVelocity();
         float _velocityMultiplier = getPluginConfig().ThrowVelocity.GetValue();
-        velo = Vector3_Multiply(velo, 3 * _velocityMultiplier);
+        velo = velo * 3 * _velocityMultiplier;
         rigidBody->set_velocity(velo);
 
         _saberRotSpeed = _saberSpeed * _velocityMultiplier;
@@ -716,9 +646,9 @@ void TrickManager::ThrowStart() {
 
 
         auto* saberTransform = rigidBody->get_transform();
-        getLogger().debug("velocity: %f", Vector3_Magnitude(velo));
+        getLogger().debug("velocity: %f", velo.Magnitude());
         getLogger().debug("_saberRotSpeed: %f", _saberRotSpeed);
-        auto torqRel = Vector3_Multiply(Vector3_Right, _saberRotSpeed);
+        auto torqRel = Vector3_Right * _saberRotSpeed;
         auto torqWorld = saberTransform->TransformVector(torqRel);
         // 5 == ForceMode.Acceleration
 
@@ -789,9 +719,9 @@ void TrickManager::ThrowReturn() {
         _saberTrickModel->Rigidbody->set_velocity(Vector3_Zero);
         setThrowState(Ending);
 
-        UnityEngine::Vector3 saberPos = _saberTrickModel->Rigidbody->get_position();
-        _throwReturnDirection = Vector3_Subtract(_controllerPosition, saberPos);
-        getLogger().debug("distance: %f", Vector3_Magnitude(_throwReturnDirection));
+        Sombrero::FastVector3 saberPos = _saberTrickModel->Rigidbody->get_position();
+        _throwReturnDirection = _controllerPosition - saberPos;
+        getLogger().debug("distance: %f", _throwReturnDirection.Magnitude());
 
         if ((_slowmoState == Started) && (other->_throwState != Started)) {
             _slowmoTimeScale = GetTimescale();
@@ -877,7 +807,7 @@ void TrickManager::InPlaceRotationStart() {
         _spinSpeed = abs(angularVelocity.x) + abs(angularVelocity.y);
         // getLogger().debug("_spinSpeed: %f", _spinSpeed);
         auto contRotInv = Quaternion_Inverse(_controllerRotation);
-        angularVelocity = Quaternion_Multiply(contRotInv, angularVelocity);
+        angularVelocity = contRotInv * angularVelocity;
         if (angularVelocity.x < 0) _spinSpeed *= -1;
     } else {
         float speed = 30;
@@ -913,12 +843,12 @@ Coroutine TrickManager::CompleteRotation() {
 
 
     auto threshold = std::abs(_finalSpinSpeed) + 0.1f;
-    auto angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
+    auto angle = Sombrero::FastQuaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
 
     while (angle > threshold)
     {
-        _originalSaberModelT->Rotate(UnityEngine::Vector3::get_right() * _finalSpinSpeed);
-        angle = UnityEngine::Quaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
+        _originalSaberModelT->Rotate(Sombrero::FastVector3::get_right() * _finalSpinSpeed);
+        angle = Sombrero::FastQuaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
         co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
     }
 
@@ -929,9 +859,9 @@ Coroutine TrickManager::CompleteRotation() {
 
 Coroutine TrickManager::LerpToOriginalRotation() {
     auto rot = _originalSaberModelT->get_localRotation();
-    while (UnityEngine::Quaternion::Angle(rot, Quaternion_Identity) > 5.0f)
+    while (Sombrero::FastQuaternion::Angle(rot, Quaternion_Identity) > 5.0f)
     {
-        rot = UnityEngine::Quaternion::Lerp(rot, Quaternion_Identity, UnityEngine::Time::get_deltaTime() * 20);
+        rot = Sombrero::FastQuaternion::Lerp(rot, Quaternion_Identity, UnityEngine::Time::get_deltaTime() * 20);
         _originalSaberModelT->set_localRotation(rot);
         co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
     }

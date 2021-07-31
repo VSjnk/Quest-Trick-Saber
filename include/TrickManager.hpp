@@ -19,6 +19,7 @@
 
 #include <experimental/coroutine>
 #include "custom-types/shared/coroutine.hpp"
+#include "sombrero/shared/QuaternionUtils.hpp"
 
 // Conventions:
 // tX means the type (usually System.Type i.e. Il2CppReflectionType) of X
@@ -26,14 +27,14 @@
 // xT means the .transform of unity object X
 
 
-const UnityEngine::Vector3 Vector3_Zero = UnityEngine::Vector3(0.0f, 0.0f, 0.0f);
-const UnityEngine::Vector3 Vector3_Right = UnityEngine::Vector3(1.0f, 0.0f, 0.0f);
-const UnityEngine::Quaternion Quaternion_Identity = UnityEngine::Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+const Sombrero::FastVector3 Vector3_Zero = Sombrero::FastVector3(0.0f, 0.0f, 0.0f);
+const Sombrero::FastVector3 Vector3_Right = Sombrero::FastVector3(1.0f, 0.0f, 0.0f);
+const Sombrero::FastQuaternion Quaternion_Identity = Sombrero::FastQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
 
 struct ValueTuple {
-    UnityEngine::Vector3 item1;
-    UnityEngine::Quaternion item2;
+    Sombrero::FastVector3 item1;
+    Sombrero::FastQuaternion item2;
 };
 
 
@@ -106,24 +107,24 @@ class TrickManager {
         void InPlaceRotationEnd();
 		void TrickStart() const;
 		void TrickEnd() const;
-		void AddProbe(const UnityEngine::Vector3& vel, const UnityEngine::Vector3& ang);
-        UnityEngine::Vector3 GetAverageVelocity();
-        UnityEngine::Vector3 GetAverageAngularVelocity();
+		void AddProbe(const Sombrero::FastVector3& vel, const Sombrero::FastVector3& ang);
+        Sombrero::FastVector3 GetAverageVelocity();
+        Sombrero::FastVector3 GetAverageAngularVelocity();
         GlobalNamespace::IVRPlatformHelper* _vrPlatformHelper;  			    // ::VRPlatformHelper
         GlobalNamespace::HapticFeedbackController* _hapticFeedbackController;  	// ::HapticFeedbackController
         ButtonMapping _buttonMapping;
         UnityEngine::BoxCollider* _collider = nullptr;    		// BoxCollider
-        UnityEngine::Vector3       _controllerPosition = Vector3_Zero;
-        UnityEngine::Quaternion    _controllerRotation = Quaternion_Identity;
-        UnityEngine::Vector3       _prevPos            = Vector3_Zero;
-        UnityEngine::Vector3       _angularVelocity    = Vector3_Zero;
-        UnityEngine::Quaternion    _prevRot            = Quaternion_Identity;
+        Sombrero::FastVector3       _controllerPosition = Vector3_Zero;
+        Sombrero::FastQuaternion    _controllerRotation = Quaternion_Identity;
+        Sombrero::FastVector3       _prevPos            = Vector3_Zero;
+        Sombrero::FastVector3       _angularVelocity    = Vector3_Zero;
+        Sombrero::FastQuaternion    _prevRot            = Quaternion_Identity;
         float         _currentRotation;
         float         _saberSpeed         = 0.0f;
         float         _saberRotSpeed      = 0.0f;
 		size_t _currentProbeIndex;
-		std::vector<UnityEngine::Vector3> _velocityBuffer;
-		std::vector<UnityEngine::Vector3> _angularVelocityBuffer;
+		std::vector<Sombrero::FastVector3> _velocityBuffer;
+		std::vector<Sombrero::FastVector3> _angularVelocityBuffer;
 		float _spinSpeed;
 		float _finalSpinSpeed;
 		SaberTrickModel* _saberTrickModel = nullptr;
@@ -133,7 +134,7 @@ class TrickManager {
 		Il2CppString* _basicSaberName = nullptr;  // only exists up until Start2
 		UnityEngine::Transform* _saberT = nullptr;  // needed for effecient Start2 checking in Update
 		// Vector3 _VRController_position_offset = Vector3_Zero;
-        UnityEngine::Vector3 _throwReturnDirection = Vector3_Zero;
+        Sombrero::FastVector3 _throwReturnDirection = Vector3_Zero;
 		// float _prevThrowReturnDistance;
 		UnityEngine::Transform* _fakeTransform;  // will "replace" VRController's transform during trickCutting throws
 };

@@ -52,6 +52,11 @@
       "id": "conditional-dependencies",
       "versionRange": "*",
       "additionalData": {}
+    },
+    {
+      "id": "sombrero",
+      "versionRange": "*",
+      "additionalData": {}
     }
   ],
   "additionalData": {}
