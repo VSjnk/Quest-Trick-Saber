@@ -33,6 +33,9 @@
 #include "GlobalNamespace/ColorManager.hpp"
 
 
+
+#include "qosmetics/shared/TrailHelper.hpp"
+
 #include "System/Collections/Generic/List_1.hpp"
 #include <string>
 
@@ -134,50 +137,41 @@ class SaberTrickModel {
         // such as it is with the Katana sabers
         // We also reset/hide the trail so it doesn't look teleported away
         if (QosmeticsLoaded) {
-            static auto getQosmeticsColorManager = il2cpp_utils::FindMethod("Qosmetics", "SingletonContainer",
-                                                                            "get_colorManager");
-            auto colorManager = CRASH_UNLESS(
-                    il2cpp_utils::RunMethod<Il2CppObject *>(nullptr, getQosmeticsColorManager));
+            static auto altTrailKlass = il2cpp_utils::GetClassFromName("Qosmetics", "AltTrail");
+            static auto TrailHelperKlass = il2cpp_utils::GetClassFromName("Qosmetics", "TrailHelper");
 
-            auto trails = go->GetComponentsInChildren<GlobalNamespace::SaberTrail *>(!active);
+            if (altTrailKlass) {
+                static auto altTrailType = il2cpp_utils::GetSystemType(altTrailKlass);
+                static auto TrailHelperType = il2cpp_utils::GetSystemType(TrailHelperKlass);
+
+                auto trails = go->GetComponentsInChildren(TrailHelperType, !active);
+                go->get_transform()->set_localPosition(active ? zero : away);
+
+                for (int i = 0; i < trails->Length(); i++) {
+                    auto trail = reinterpret_cast<Qosmetics::TrailHelper *>(trails->get(i));
 
 
-            go->get_transform()->set_localPosition(active ? zero : away);
+                    if (trail) {
+//                    trail->set_enabled(active);
 
+                        // Reset Qosmetics trail data
+                        // Avoid often, so only when the saber is set to active
+//                        trail->SetTrailActive(active);
+                        if (active && false) {
+                            try {
+                                static auto QosmeticsTrail_reset = il2cpp_utils::FindMethodUnsafe(altTrailKlass,
+                                                                                                  "Reset",
+                                                                                                  1);
 
-            for (int i = 0; i < trails->Length(); i++) {
-                auto trail = trails->get(i);
-                if (strcmp(trail->klass->namespaze, "Qosmetics") != 0) continue;
-
-                if (trail) {
-                    // Hide trail
-                    trail->set_enabled(active);
-                    trail->trailRenderer->meshRenderer->set_enabled(active);
-
-                    // Reset trail data
-                    if (trail->movementData && trail->trailElementCollection) {
-                        trail->ResetTrailData();
-                    }
-
-                    // Reset Qosmetics trail data
-                    // Avoid often, so only when the saber is set to active
-                    if (active) {
-                        try {
-                            static auto QosmeticsTrail_reset = il2cpp_utils::FindMethod("Qosmetics", "QosmeticsTrail",
-                                                                                        "Reset");
-                            static auto QosmeticsTrail_setColorManager = il2cpp_utils::FindMethodUnsafe("Qosmetics",
-                                                                                                        "QosmeticsTrail",
-                                                                                                        "SetColorManager",
-                                                                                                        1);
-                            if (QosmeticsTrail_reset) {
-                                getLogger().debug("Trail reset!");
-                                il2cpp_utils::RunMethod(trail, QosmeticsTrail_setColorManager, colorManager);
-                                il2cpp_utils::RunMethod(trail, QosmeticsTrail_reset);
-                            } else {
-                                getLogger().error("Qosmetics trail code needs fixing!");
+                                if (QosmeticsTrail_reset) {
+                                    getLogger().debug("Trail reset!");
+//                                    il2cpp_utils::RunMethodThrow<void, false>(trail, QosmeticsTrail_reset, false);
+                                } else {
+                                    getLogger().error("Qosmetics trail code needs fixing!");
+                                }
+                            } catch (il2cpp_utils::Il2CppUtilsException &e) {
+                                getLogger().error("Qosmetics trail code needs fixing! message: %s", e.msg.c_str());
                             }
-                        } catch (il2cpp_utils::Il2CppUtilsException &e) {
-                            getLogger().error("Qosmetics trail code needs fixing!");
                         }
                     }
                 }
