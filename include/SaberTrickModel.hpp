@@ -33,7 +33,7 @@
 #include "GlobalNamespace/ColorManager.hpp"
 
 
-
+#include "qosmetics/shared/SaberAPI.hpp"
 #include "qosmetics/shared/TrailHelper.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
@@ -103,7 +103,18 @@ class SaberTrickModel {
             }
             SetupRigidbody(Rigidbody, OriginalSaberModel);
         } else {
-            TrickModel = UnityEngine::Object::Instantiate(SaberModel);
+            auto createCustom = Qosmetics::SaberAPI::GetDummySaber(saberScript->saberType->saberType);
+
+            // If qosmetics is not found or if it is default saber, create custom model ourselves
+            if (!createCustom || !createCustom.value()) {
+                getLogger().debug("Creating model manually");
+                TrickModel = UnityEngine::Object::Instantiate(SaberModel);
+            } else {
+                getLogger().debug("Qosmetics made the model for us");
+                TrickModel = createCustom.value()->get_gameObject();
+            }
+
+
             CRASH_UNLESS(TrickModel);
             auto* newName = il2cpp_utils::newcsstr(
                     saberPrefix + to_utf8(csstrtostr(SaberModel->get_name())) + "_" + std::to_string((int) saber->saberType->saberType)
@@ -156,7 +167,7 @@ class SaberTrickModel {
 
                         // Reset Qosmetics trail data
                         // Avoid often, so only when the saber is set to active
-//                        trail->SetTrailActive(active);
+                        trail->SetTrailActive(active);
                         if (active && false) {
                             try {
                                 static auto QosmeticsTrail_reset = il2cpp_utils::FindMethodUnsafe(altTrailKlass,
