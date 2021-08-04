@@ -471,4 +471,8 @@ class SaberTrickModel {
     std::optional<Qosmetics::ColorComponent*> colorComponent;
     GlobalNamespace::SaberModelController* origSaberModelController;
     GlobalNamespace::SaberModelController* trickSaberModelController;
+
+    bool isCustom;
+
+
 };
