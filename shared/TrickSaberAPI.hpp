@@ -26,7 +26,7 @@ namespace TrickSaber {
         /// @param saberType The id of the saber
         /// @return The throw state of the saber, or nullopt if method not found or no state
         static std::optional<TrickSaber::TrickState> getThrowState(GlobalNamespace::SaberType saberType) noexcept {
-            static auto function = CondDep::Find<TrickSaber::TrickState, GlobalNamespace::SaberType>(modId, "getThrowState");
+            static auto function = CondDeps::Find<TrickSaber::TrickState, GlobalNamespace::SaberType>(modId, "getThrowState");
 
             if (function) {
                 auto state = function.value()(saberType);
@@ -41,7 +41,7 @@ namespace TrickSaber {
         /// @param saberType The id of the saber
         /// @return The spin state of the saber, or nullopt if method not found or no state
         static std::optional<TrickSaber::TrickState> getSpinState(GlobalNamespace::SaberType saberType) noexcept {
-            static auto function = CondDep::Find<TrickSaber::TrickState, GlobalNamespace::SaberType>(modId, "getSpinState");
+            static auto function = CondDeps::Find<TrickSaber::TrickState, GlobalNamespace::SaberType>(modId, "getSpinState");
 
             if (function) {
                 auto state = function.value()(saberType);
@@ -56,7 +56,7 @@ namespace TrickSaber {
         /// @param saberType The id of the saber
         /// @return The active game object of the saber, or nullopt if method not found or no game object
         static std::optional<UnityEngine::GameObject*> getActiveSaber(int saberType) noexcept {
-            static auto function = CondDep::Find<UnityEngine::GameObject*, GlobalNamespace::SaberType>(modId, "getActiveSaber");
+            static auto function = CondDeps::Find<UnityEngine::GameObject*, GlobalNamespace::SaberType>(modId, "getActiveSaber");
 
             if (function) {
                 // Returns the game object value or nullptr if it was a nullopt
@@ -74,7 +74,7 @@ namespace TrickSaber {
         /// @param saberType The id of the saber
         /// @return The game object of the trick model saber, or nullopt if method not found or no game object
         static std::optional<UnityEngine::GameObject*> getTrickSaber(int saberType) noexcept {
-            static auto function = CondDep::Find<UnityEngine::GameObject*, GlobalNamespace::SaberType>(modId, "getTrickSaber");
+            static auto function = CondDeps::Find<UnityEngine::GameObject*, GlobalNamespace::SaberType>(modId, "getTrickSaber");
 
             if (function) {
                 // Returns the game object value or nullptr if it was a nullopt
@@ -92,7 +92,7 @@ namespace TrickSaber {
         /// @param saberType The id of the saber
         /// @return The game object of the original saber, or nullopt if method not found or no game object
         static std::optional<UnityEngine::GameObject*> getNormalSaber(int saberType) noexcept {
-            static auto function = CondDep::Find<UnityEngine::GameObject*, GlobalNamespace::SaberType>(modId, "getNormalSaber");
+            static auto function = CondDeps::Find<UnityEngine::GameObject*, GlobalNamespace::SaberType>(modId, "getNormalSaber");
 
             if (function) {
                 // Returns the game object value or nullptr if it was a nullopt

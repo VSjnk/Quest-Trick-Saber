@@ -32,9 +32,14 @@
 #include "GlobalNamespace/SaberBurnMarkSparkles.hpp"
 #include "GlobalNamespace/ColorManager.hpp"
 
+#include "sombrero/shared/ColorUtils.hpp"
 
-#include "qosmetics/shared/SaberAPI.hpp"
-#include "qosmetics/shared/TrailHelper.hpp"
+
+
+
+#include "qosmetics-api/shared/SaberAPI.hpp"
+#include "qosmetics-api/shared/Components/TrailHelper.hpp"
+#include "qosmetics-api/shared/Components/ColorComponent.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
 #include <string>
@@ -94,6 +99,7 @@ class SaberTrickModel {
         // il2cpp_utils::LogClass(il2cpp_functions::class_from_system_type(tRigidbody), false);
 
         SaberGO = OriginalSaberModel = SaberModel;
+        origSaberModelController = OriginalSaberModel->get_transform()->get_parent()->GetComponentInChildren<GlobalNamespace::SaberModelController*>(true);
 
         if (getPluginConfig().EnableTrickCutting.GetValue()) {
             Rigidbody = SaberModel->GetComponent<UnityEngine::Rigidbody*>();
@@ -109,9 +115,12 @@ class SaberTrickModel {
             if (!createCustom || !createCustom.value()) {
                 getLogger().debug("Creating model manually");
                 TrickModel = UnityEngine::Object::Instantiate(SaberModel);
+                isCustom |= basicSaber;
             } else {
                 getLogger().debug("Qosmetics made the model for us");
                 TrickModel = createCustom.value()->get_gameObject();
+                isCustom = true;
+                colorComponent = std::make_optional(TrickModel->GetComponent<Qosmetics::ColorComponent*>());
             }
 
 
@@ -459,5 +468,7 @@ class SaberTrickModel {
     UnityEngine::GameObject *originalBottomPosParented;
     UnityEngine::GameObject *originalTopPosParented;
 
+    std::optional<Qosmetics::ColorComponent*> colorComponent;
+    GlobalNamespace::SaberModelController* origSaberModelController;
     GlobalNamespace::SaberModelController* trickSaberModelController;
 };

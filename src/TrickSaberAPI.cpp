@@ -11,31 +11,31 @@ TrickManager& getTrickManager(GlobalNamespace::SaberType saberType) {
         return rightSaber;
 }
 
-extern "C" TrickSaber::TrickState getThrowState(GlobalNamespace::SaberType saberType) {
+EXPOSE_API(getThrowState, TrickSaber::TrickState, GlobalNamespace::SaberType saberType) {
     TrickManager& trickManager = getTrickManager(saberType);
 
     return trickManager.getThrowState();
 }
 
-extern "C" TrickSaber::TrickState getSpinState(GlobalNamespace::SaberType saberType) {
+EXPOSE_API(getSpinState, TrickSaber::TrickState, GlobalNamespace::SaberType saberType) {
     TrickManager& trickManager = getTrickManager(saberType);
 
     return trickManager.getSpinState();
 }
 
-extern "C" UnityEngine::GameObject* getActiveSaber(GlobalNamespace::SaberType saberType) {
+EXPOSE_API(getActiveSaber, UnityEngine::GameObject*, GlobalNamespace::SaberType saberType) {
     TrickManager& trickManager = getTrickManager(saberType);
 
     return trickManager.getActiveSaber();
 }
 
-extern "C" UnityEngine::GameObject* getTrickSaber(GlobalNamespace::SaberType saberType) {
+EXPOSE_API(getTrickSaber, UnityEngine::GameObject*, GlobalNamespace::SaberType saberType) {
     TrickManager& trickManager = getTrickManager(saberType);
 
     return trickManager.getTrickSaber();
 }
 
-extern "C" UnityEngine::GameObject* getNormalSaber(GlobalNamespace::SaberType saberType) {
+EXPOSE_API(getNormalSaber, UnityEngine::GameObject*, GlobalNamespace::SaberType saberType) {
     TrickManager& trickManager = getTrickManager(saberType);
 
     return trickManager.getNormalSaber();
