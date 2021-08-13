@@ -488,8 +488,9 @@ void TrickManager::CheckButtons() {
 
     if (!objectDestroyTimes.empty()) {
 //        std::vector<int64_t> copyObjectDestroyTimes = objectDestroyTimes;
-        getLogger().debug("Object destroy");
-        for (auto it = objectDestroyTimes.begin(); it != objectDestroyTimes.end(); it++) {
+//        getLogger().debug("Object destroy");
+        auto it = objectDestroyTimes.begin();
+        while (it != objectDestroyTimes.end()) {
             auto destroyTime = *it;
 
             if (!destroyTime)
@@ -499,6 +500,8 @@ void TrickManager::CheckButtons() {
                 objectCount--;
                 if (objectCount < 0) objectCount = 0;
                 it = objectDestroyTimes.erase(it);
+            } else {
+                it++;
             }
         }
         getLogger().debug("Destroyed objects");
