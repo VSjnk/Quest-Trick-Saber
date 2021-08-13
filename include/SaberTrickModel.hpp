@@ -473,6 +473,6 @@ class SaberTrickModel {
     GlobalNamespace::SaberModelController* trickSaberModelController;
 
     bool isCustom;
-
+    std::optional<UnityEngine::Color> newColor = std::nullopt;
 
 };
