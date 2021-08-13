@@ -163,23 +163,32 @@ MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
 
     Saber_ManualUpdate(self);
 
+    if (!getPluginConfig().EnableTrickCutting.GetValue()) {
+        static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
 
-    static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
+        // Fix trails
+        // If Qosmetics is on, we do not handle trails.
+        if (trickManager.getTrickModel() &&
 
-    // Fix trails
-    // If Qosmetics is on, we do not handle trails.
-    if (!QosmeticsLoaded && trickManager.getTrickModel() &&
+        trickManager.isDoingTricks() &&
 
         // Only manipulate trail movement data
         trickManager.getTrickModel()->trailMovementData &&
 
         // Check if transforms have been made yet
-        trickManager.getTrickModel()->getModelBottomTransform()) {
-        auto trickModel = trickManager.getTrickModel();
+        trickManager.getTrickModel()->getModelBottomTransform()
+        ) {
+            auto trickModel = trickManager.getTrickModel();
 
+            if (!QosmeticsLoaded) {
+                trickModel->trailMovementData->AddNewData(trickModel->getModelTopTransform()->get_position(),
+                                                          trickModel->getModelBottomTransform()->get_position(), TimeHelper::get_time());
+            }
 
-        trickModel->trailMovementData->AddNewData(trickModel->getModelTopTransform()->get_position(),
-                                                  trickModel->getModelBottomTransform()->get_position(), TimeHelper::get_time());
+            auto trickSaberScript = trickManager.getTrickModel()->trickSaberScript;
+            if (trickSaberScript)
+                SaberManualUpdate((Saber *) trickSaberScript);
+        }
     }
 
     trickManager.Update();
@@ -188,35 +197,70 @@ MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
 static std::vector<System::Type*> tBurnTypes;
 
 
-/*void DisableBurnMarks(int saberType) {
-    if (!FakeSaber) {
-        static auto* tSaber = csTypeOf(Saber*);
-        auto* core = UnityEngine::GameObject::Find(il2cpp_utils::newcsstr("GameCore"));
-        FakeSaber = core->AddComponent<Saber*>();
+void DisableBurnMarks(int saberType) {
+    TrickManager& trickManager = saberType == 0 ? leftSaber : rightSaber;
 
-        FakeSaber->set_enabled(false);
+    if (!trickManager.getTrickModel())
+        return;
 
-        getLogger().info("FakeSaber.isActiveAndEnabled: %i",FakeSaber->get_isActiveAndEnabled());
+    auto saberScript = trickManager.getTrickModel()->trickSaberScript;
 
-        auto* saberTypeObj = RealSaber->saberType;
-        FakeSaber->saberType = saberTypeObj;
-        getLogger().info("FakeSaber SaberType: %i", FakeSaber->saberType);
-    }
     for (auto* type : tBurnTypes) {
         auto *components = UnityEngine::Object::FindObjectsOfType(type);
+        if (!components)
+            continue;
+
         for (il2cpp_array_size_t i = 0; i < components->Length(); i++) {
             auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components->values[i], "_sabers"));
-            sabers->values[saberType] = FakeSaber;
+            if (!sabers)
+                continue;
+
+            sabers->values[saberType] = (Saber *) saberScript;
         }
     }
-}*/
+}
+
+void SaberManualUpdate(GlobalNamespace::Saber* saber) {
+    if (!saber->get_gameObject()->get_activeInHierarchy())
+    {
+        return;
+    }
+
+    TrickManager& trickManager = saber->saberType->saberType == 0 ? leftSaber : rightSaber;
+
+    auto trickModel = trickManager.getTrickModel();
+
+    if (!trickModel)
+        return;
+
+
+    saber->handlePos = saber->handleTransform->get_position();
+    saber->handleRot = saber->handleTransform->get_rotation();
+
+    auto bottomTransform = trickModel->getModelBottomTransform();
+    auto topTransform = trickModel->getModelTopTransform();
+
+    saber->saberBladeTopPos = bottomTransform->get_position();
+    saber->saberBladeBottomPos = topTransform->get_position();
+}
 
 void EnableBurnMarks(int saberType) {
+    TrickManager& trickManager = saberType == 0 ? leftSaber : rightSaber;
+
+    if (trickManager.isDoingTricks())
+        return;
+
     for (auto *type : tBurnTypes) {
         auto *components = UnityEngine::Object::FindObjectsOfType(type);
+        if (!components)
+            continue;
+
         for (int i = 0; i < components->Length(); i++) {
             getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(components->values[i]->get_name())).c_str());
             auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components->values[i], "_sabers"));
+
+            if (!sabers) continue;
+
             sabers->values[saberType] = saberType ? saberManager->rightSaber : saberManager->leftSaber;
         }
     }
@@ -257,9 +301,13 @@ MAKE_HOOK_MATCH(AudioTimeSyncController_Start, &AudioTimeSyncController::Start, 
 }
 
 MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabersClashing, bool, SaberClashChecker* self, ByRef<UnityEngine::Vector3> clashingPoint) {
-    bool val = SaberClashChecker_AreSabersClashing(self, clashingPoint);
+    if (!getPluginConfig().EnableTrickCutting.GetValue()) {
+        bool val = SaberClashChecker_AreSabersClashing(self, clashingPoint);
 
-    return (!rightSaber.isDoingTricks() && !leftSaber.isDoingTricks()) && val;
+        return (!rightSaber.isDoingTricks() && !leftSaber.isDoingTricks()) && val;
+    } else {
+        return SaberClashChecker_AreSabersClashing(self, clashingPoint);
+    }
 }
 
 MAKE_HOOK_MATCH(VRController_Update, &VRController::Update, void, GlobalNamespace::VRController* self) {

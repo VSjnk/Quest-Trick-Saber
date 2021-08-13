@@ -529,6 +529,7 @@ void TrickManager::TrickStart() const {
         // even on throws, we disable this to call Update manually and thus control ordering
         VRController->set_enabled(false);
     } else {
+        DisableBurnMarks(_isLeftSaber ? 0 : 1);
 //        this->doClashEffect = false;
     }
 }
@@ -536,8 +537,11 @@ void TrickManager::TrickStart() const {
 void TrickManager::TrickEnd() const {
     if (getPluginConfig().EnableTrickCutting.GetValue()) {
         VRController->set_enabled(true);
-    } else if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
-//        this->doClashEffect = true;
+    } else {
+        if ((other->_throwState == Inactive) && (other->_spinState == Inactive)) {
+            //        this->doClashEffect = true;
+        }
+        EnableBurnMarks(_isLeftSaber ? 0 : 1);
     }
 }
 
@@ -670,7 +674,7 @@ void TrickManager::ThrowStart() {
             }
         }
 
-        //DisableBurnMarks(_isLeftSaber ? 0 : 1);
+//        DisableBurnMarks(_isLeftSaber ? 0 : 1);
 
         getLogger().debug("Throw state set");
         setThrowState(Started);
@@ -776,7 +780,6 @@ void TrickManager::ThrowEnd() {
     if (other->_throwState == Inactive) {
         ForceEndSlowmo();
     }
-    EnableBurnMarks(_isLeftSaber ? 0 : 1);
     setThrowState(Inactive);
 
     UnityEngine::XR::XRNode node;

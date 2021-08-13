@@ -7,6 +7,9 @@
 #include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "GlobalNamespace/SaberClashChecker.hpp"
 #include "GlobalNamespace/SaberManager.hpp"
+#include "GlobalNamespace/Saber.hpp"
+#include "UnityEngine/Transform.hpp"
+#include "UnityEngine/GameObject.hpp"
 
 inline std::vector<int64_t> objectDestroyTimes;
 inline int objectCount = 0;
@@ -19,8 +22,10 @@ const Logger& logger();
 static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController = nullptr;
 static GlobalNamespace::SaberManager *saberManager = nullptr;
 
-//void DisableBurnMarks(int saberType);
+void DisableBurnMarks(int saberType);
 void EnableBurnMarks(int saberType);
+
+void SaberManualUpdate(GlobalNamespace::Saber* saber);
 
 int64_t getTimeMillis();
 
