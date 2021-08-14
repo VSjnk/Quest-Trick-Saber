@@ -493,12 +493,12 @@ void TrickManager::CheckButtons() {
 
     float power;
 
+    auto freezeThrowDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::FreezeThrow], power);
+    auto freezeThrowUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::FreezeThrow]);
     auto throwDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Throw], power);
     auto throwUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Throw]);
     auto spinDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::Spin], power);
     auto spinUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Spin]);
-    auto freezeThrowDown = CheckHandlersDown(_buttonMapping.actionHandlers[(int) TrickAction::FreezeThrow], power);
-    auto freezeThrowUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::FreezeThrow]);
 
     if (!objectDestroyTimes.empty()) {
 //        std::vector<int64_t> copyObjectDestroyTimes = objectDestroyTimes;
@@ -723,9 +723,9 @@ void TrickManager::ThrowStart() {
         }
     } else {
         auto* rigidBody = _saberTrickModel->Rigidbody;
-        if (doFrozenThrow) {
-            rigidBody->set_velocity(0);
-        }
+//        if (doFrozenThrow) {
+//            rigidBody->set_velocity(0);
+//        }
         getLogger().debug("%s throw continues", _isLeftSaber ? "Left" : "Right");
     }
 
