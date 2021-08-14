@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "UnityEngine/ScriptableObject.hpp"
 #include "Libraries/HM/HMLib/VR/HapticPresetSO.hpp"
+#include "beatsaber-hook/shared/utils/byref.hpp"
 
 #include "UnityEngine/WaitForEndOfFrame.hpp"
 
@@ -381,6 +382,17 @@ void TrickManager::Update() {
     }
 
     auto dCon = _prevPos - _controllerPosition;
+
+    if (getPluginConfig().MoveWhileThrown.GetValue() && _throwState != TrickState::Inactive) {
+        auto* rigidBody = _saberTrickModel->Rigidbody;
+
+        static auto addTorque = (function_ptr_t<void, UnityEngine::Rigidbody*, UnityEngine::Vector3*, int>)
+                CRASH_UNLESS(il2cpp_functions::resolve_icall("UnityEngine.Rigidbody::AddTorque_Injected"));
+
+        auto torqueVel = _angularVelocity;
+        addTorque(rigidBody, &torqueVel, 0);
+    }
+
     float distanceController = dCon.Magnitude();
 
     // float mag = Vector3_Magnitude(_angularVelocity);

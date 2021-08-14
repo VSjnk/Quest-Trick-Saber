@@ -40,6 +40,7 @@ CONFIG_VALUE(ThrowVelocity, float, "ThrowVelocity", 1.0f);
 
 CONFIG_VALUE(EnableTrickCutting, bool, "EnableTrickCutting (Broken)", false);
 CONFIG_VALUE(CompleteRotationMode, bool, "CompleteRotationMode", false);
+CONFIG_VALUE(MoveWhileThrown, bool, "Move While Thrown", false);
 
 CONFIG_VALUE(ReturnSpeed, float, "ReturnSpeed", 10.0f);
 
@@ -81,6 +82,7 @@ CONFIG_VALUE(SlowmoStepAmount, float, "SlowmoStepAmount", 0.02f);
         CONFIG_INIT_VALUE(ThrowVelocity);
         CONFIG_INIT_VALUE(EnableTrickCutting);
         CONFIG_INIT_VALUE(CompleteRotationMode);
+        CONFIG_INIT_VALUE(MoveWhileThrown);
         CONFIG_INIT_VALUE(ReturnSpeed);
         CONFIG_INIT_VALUE(SlowmoDuringThrow);
         CONFIG_INIT_VALUE(SlowmoAmount);
