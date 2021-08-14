@@ -137,6 +137,7 @@ class TrickManager {
         Sombrero::FastVector3 _throwReturnDirection = Vector3_Zero;
 		// float _prevThrowReturnDistance;
 		UnityEngine::Transform* _fakeTransform;  // will "replace" VRController's transform during trickCutting throws
+		bool doFrozenThrow = false;
 };
 
 inline TrickManager leftSaber;

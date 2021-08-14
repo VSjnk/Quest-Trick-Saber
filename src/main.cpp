@@ -464,6 +464,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
         auto* actionGrid = container;
         SEPARATOR_LINE
         BeatSaberUI::CreateText(actionGrid->get_transform(), "Actions Remapping (UI is very funky here)", false)->set_fontSize(sectTextMult);
+        BeatSaberUI::CreateText(actionGrid->get_transform(), "Freeze throw freezes the saber while thrown", false)->set_fontSize(sectTextMult * 0.7);
 //        actionGrid->set_name(il2cpp_utils::newcsstr("Actions"));
 //        actionGrid->set_spacing(1);
 

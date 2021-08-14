@@ -10,8 +10,10 @@ typedef std::map<int, std::string> EnumReverseMap;
 
 #define ACTION_ENUM(DO) \
 	DO(Throw) \
-	DO(Spin) \
-	DO(None)
+	DO(Spin)               \
+	DO(None)               \
+	DO(FreezeThrow)
+
 enum class TrickAction {
 	#define MAKE_ENUM(VAR) VAR,
 	ACTION_ENUM(MAKE_ENUM)
