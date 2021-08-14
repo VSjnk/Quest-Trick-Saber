@@ -58,10 +58,11 @@ class SaberTrickModel {
     bool basicSaber;
     int update;
 
-    UnityEngine::Transform* getModelTopTransform() const {
+    [[nodiscard]] UnityEngine::Transform* getModelTopTransform() const {
         if (SaberGO == OriginalSaberModel && SaberGO) {
             if (originalTopPosParented)
                 return originalTopPosParented->get_transform();
+
 
             return saberScript ? saberScript->saberBladeTopTransform : nullptr;
         } else {
@@ -69,7 +70,7 @@ class SaberTrickModel {
         }
     }
 
-    UnityEngine::Transform* getModelBottomTransform() const {
+    [[nodiscard]] UnityEngine::Transform* getModelBottomTransform() const {
         if (SaberGO == OriginalSaberModel && SaberGO) {
             if (originalBottomPosParented)
                 return originalBottomPosParented->get_transform();
@@ -80,15 +81,15 @@ class SaberTrickModel {
         }
     }
 
-    UnityEngine::GameObject* getTrickModel() const {
+    [[nodiscard]] UnityEngine::GameObject* getTrickModel() const {
         return this->TrickModel;
     }
 
-    UnityEngine::GameObject* getOriginalModel() const {
+    [[nodiscard]] UnityEngine::GameObject* getOriginalModel() const {
         return this->OriginalSaberModel;
     }
 
-    UnityEngine::GameObject* getActiveModel() const {
+    [[nodiscard]] UnityEngine::GameObject* getActiveModel() const {
         return SaberGO;
     }
 
@@ -340,6 +341,9 @@ class SaberTrickModel {
         auto bottomPos = UnityEngine::GameObject::New_ctor();
         auto topPos = UnityEngine::GameObject::New_ctor();
 
+        bottomPos->get_transform()->SetParent(OriginalSaberModel->get_transform());
+        topPos->get_transform()->SetParent(OriginalSaberModel->get_transform());
+
         bottomPos->get_transform()->SetPositionAndRotation(saberScript->saberBladeBottomTransform->get_position(),
                                                            saberScript->saberBladeBottomTransform->get_rotation());
 
@@ -347,16 +351,16 @@ class SaberTrickModel {
                                                         saberScript->saberBladeTopTransform->get_rotation());
 
 
-        bottomPos->get_transform()->SetParent(OriginalSaberModel->get_transform());
-        topPos->get_transform()->SetParent(OriginalSaberModel->get_transform());
+
 
         originalBottomPosParented = bottomPos;
         originalTopPosParented = topPos;
 
         if (!getPluginConfig().EnableTrickCutting.GetValue()) {
-            trickSaberScript.emplace(TrickModel->AddComponent<GlobalNamespace::Saber*>());
-            trickSaberScript->saberBladeBottomTransform = trickBottomPos->get_transform();
-            trickSaberScript->saberBladeTopTransform = trickTopPos->get_transform();
+            UnityEngine::GameObject* go = UnityEngine::GameObject::New_ctor(il2cpp_utils::newcsstr("TrickSaberScript" + std::to_string(saberScript->get_saberType().value)));
+            trickSaberScript.emplace(go->AddComponent<GlobalNamespace::Saber*>());
+            trickSaberScript->saberBladeBottomTransform = getModelBottomTransform();
+            trickSaberScript->saberBladeTopTransform = getModelTopTransform();
             trickSaberScript->saberType = saberScript->saberType;
             trickSaberScript->movementData = trailMovementData;
             trickSaberScript->handleTransform = saberScript->handleTransform;

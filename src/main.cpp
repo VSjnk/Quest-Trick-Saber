@@ -170,23 +170,21 @@ MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
         // If Qosmetics is on, we do not handle trails.
         if (trickManager.getTrickModel() &&
 
-        trickManager.isDoingTricks() &&
-
         // Only manipulate trail movement data
-        trickManager.getTrickModel()->trailMovementData &&
-
-        // Check if transforms have been made yet
-        trickManager.getTrickModel()->getModelBottomTransform()
+        trickManager.getTrickModel()->trailMovementData
         ) {
             auto trickModel = trickManager.getTrickModel();
 
-            if (!QosmeticsLoaded) {
+            // Check if transforms have been made yet
+            auto bottomTransform = trickManager.getTrickModel()->getModelBottomTransform();
+
+            if (!QosmeticsLoaded && bottomTransform) {
                 trickModel->trailMovementData->AddNewData(trickModel->getModelTopTransform()->get_position(),
-                                                          trickModel->getModelBottomTransform()->get_position(), TimeHelper::get_time());
+                                                          bottomTransform->get_position(), TimeHelper::get_time());
             }
 
             auto trickSaberScript = trickManager.getTrickModel()->trickSaberScript;
-            if (trickSaberScript)
+            if (trickSaberScript && trickManager.isDoingTricks())
                 SaberManualUpdate((Saber *) trickSaberScript);
         }
     }
@@ -221,11 +219,6 @@ void DisableBurnMarks(int saberType) {
 }
 
 void SaberManualUpdate(GlobalNamespace::Saber* saber) {
-    if (!saber->get_gameObject()->get_activeInHierarchy())
-    {
-        return;
-    }
-
     TrickManager& trickManager = saber->saberType->saberType == 0 ? leftSaber : rightSaber;
 
     auto trickModel = trickManager.getTrickModel();
@@ -240,8 +233,8 @@ void SaberManualUpdate(GlobalNamespace::Saber* saber) {
     auto bottomTransform = trickModel->getModelBottomTransform();
     auto topTransform = trickModel->getModelTopTransform();
 
-    saber->saberBladeTopPos = bottomTransform->get_position();
-    saber->saberBladeBottomPos = topTransform->get_position();
+    saber->saberBladeTopPos = topTransform->get_position();
+    saber->saberBladeBottomPos = bottomTransform->get_position();
 }
 
 void EnableBurnMarks(int saberType) {
