@@ -109,6 +109,7 @@ class SaberTrickModel {
                 getLogger().warning("Adding rigidbody to original SaberModel?!");
                 Rigidbody = SaberModel->AddComponent<UnityEngine::Rigidbody*>();
             }
+            TrickModel = SaberGO;
             SetupRigidbody(Rigidbody, OriginalSaberModel);
         } else {
             auto createCustom = Qosmetics::SaberAPI::GetDummySaber(saberScript->saberType->saberType);
@@ -117,7 +118,7 @@ class SaberTrickModel {
             if (!createCustom || !createCustom.value()) {
                 getLogger().debug("Creating model manually");
                 TrickModel = UnityEngine::Object::Instantiate(SaberModel);
-                isCustom |= basicSaber;
+                isCustom = !basicSaber;
             } else {
                 getLogger().debug("Qosmetics made the model for us");
                 TrickModel = createCustom.value()->get_gameObject();
@@ -308,6 +309,9 @@ class SaberTrickModel {
 
 
         newSaberModelController->Init(oldSaberModelContainerT, oldSaberModelContainer->saber);
+
+        newSaberModelController->saberTrail->color = origSaberModelController->saberTrail->color;
+        newSaberModelController->initData->trailTintColor = origSaberModelController->initData->trailTintColor;
     }
 
     void FixTransforms(bool basicSaber) {
@@ -490,6 +494,6 @@ class SaberTrickModel {
     GlobalNamespace::SaberModelController* trickSaberModelController;
 
     bool isCustom;
-    std::optional<UnityEngine::Color> newColor = std::nullopt;
+    std::optional<Sombrero::FastColor> newColor = std::nullopt;
 
 };
