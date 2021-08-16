@@ -11,6 +11,7 @@ class GripHandler : public InputHandler {
   private:
     const GlobalNamespace::OVRInput::Controller _oculusController;
     UnityEngine::XR::InputDevice _controllerInputDevice;  // UnityEngine.XR.InputDevice
+    bool connected = false;
 
     typedef float (GripHandler::*MemFn)();
     MemFn _valueFunc;
@@ -35,9 +36,9 @@ class GripHandler : public InputHandler {
     }
 
   public:
-    GripHandler(VRSystem vrSystem, GlobalNamespace::OVRInput::Controller oculusController, UnityEngine::XR::InputDevice controllerInputDevice, float threshold)
-    : InputHandler(threshold), _oculusController(oculusController), _controllerInputDevice(controllerInputDevice) {
-        _valueFunc = (vrSystem == VRSystem::Oculus) ? &GripHandler::GetValueOculus : &GripHandler::GetValueSteam;
+    GripHandler(bool isConnected, GlobalNamespace::OVRInput::Controller oculusController, UnityEngine::XR::InputDevice controllerInputDevice, float threshold)
+    : InputHandler(threshold), _oculusController(oculusController), _controllerInputDevice(controllerInputDevice), connected(isConnected) {
+        _valueFunc = &GripHandler::GetValueOculus;
 
         IsReversed = getPluginConfig().ReverseGrip.GetValue();
     }

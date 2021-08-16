@@ -88,7 +88,7 @@ void ButtonMapping::Update() {
         new TriggerHandler(node, getPluginConfig().TriggerThreshold.GetValue())
     ));
     actionHandlers[(int)getPluginConfig().GripAction.GetValue()].insert(std::unique_ptr<InputHandler>(
-        new GripHandler(vrSystem, oculusController, controllerInputDevice, getPluginConfig().GripThreshold.GetValue())
+        new GripHandler(isOculus, oculusController, controllerInputDevice, getPluginConfig().GripThreshold.GetValue())
     ));
     actionHandlers[(int)getPluginConfig().ThumbstickAction.GetValue()].insert(std::unique_ptr<InputHandler>(
         new ThumbstickHandler(node, getPluginConfig().ThumbstickThreshold.GetValue(), dir)
@@ -723,9 +723,9 @@ void TrickManager::ThrowStart() {
         }
     } else {
         auto* rigidBody = _saberTrickModel->Rigidbody;
-//        if (doFrozenThrow) {
-//            rigidBody->set_velocity(0);
-//        }
+        if (doFrozenThrow) {
+            rigidBody->set_velocity(0);
+        }
         getLogger().debug("%s throw continues", _isLeftSaber ? "Left" : "Right");
     }
 
