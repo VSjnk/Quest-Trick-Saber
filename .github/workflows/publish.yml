@@ -33,7 +33,7 @@ jobs:
       - name: Setup NDK
         #         if: steps.cache-ndk.outputs.cache-hit != 'true'
         id: setup-ndk
-        uses: cherryleafroad/setup-ndk@1.0.8
+        uses: nttld/setup-ndk@v1
         with:
           ndk-version: r23
 
