@@ -14,6 +14,7 @@
 #include "UnityEngine/MeshRenderer.hpp"
 #include "UnityEngine/MaterialPropertyBlock.hpp"
 #include "UnityEngine/AudioSource.hpp"
+#include "GlobalNamespace/Parametric3SliceSpriteController.hpp"
 #include "GlobalNamespace/Saber.hpp"
 #include "GlobalNamespace/SaberTrailRenderer.hpp"
 #include "GlobalNamespace/SaberType.hpp"
@@ -35,7 +36,7 @@
 #include "sombrero/shared/ColorUtils.hpp"
 
 
-
+#include "chroma/shared/SaberAPI.hpp"
 
 #include "qosmetics-api/shared/SaberAPI.hpp"
 #include "qosmetics-api/shared/Components/TrailHelper.hpp"
@@ -56,7 +57,6 @@ class SaberTrickModel {
     GlobalNamespace::SaberMovementData* trailMovementData;
 
     bool basicSaber;
-    int update;
 
     [[nodiscard]] UnityEngine::Transform* getModelTopTransform() const {
         if (SaberGO == OriginalSaberModel && SaberGO) {
@@ -147,9 +147,36 @@ class SaberTrickModel {
             trickModelT->SetParent(vrGameCoreT);
             SetActive(TrickModel,false);
             SetActive(OriginalSaberModel, true);
-        }
 
-        getLogger().debug("Leaving SaberTrickModel construction!");
+            auto origModelController = OriginalSaberModel->GetComponent<GlobalNamespace::SaberModelController*>();
+
+            // Only color if no one else is coloring the main saber or the trick saber
+            getLogger().debug("Main saber %s Trick Saber %s", isOptional(Chroma::SaberAPI::isSaberColorable(origModelController)) ? "true" : "false", isOptional(Chroma::SaberAPI::isSaberColorable(trickSaberModelController)) ? "true" : "false");
+            if (!isOptional(Chroma::SaberAPI::isSaberColorable(trickSaberModelController))) {
+                auto callback = Chroma::SaberAPI::getSaberChangedColorCallbackSafe();
+
+                if (callback) {
+                    getLogger().debug("Registering to chroma!");
+                    UnorderedEventCallback<int, GlobalNamespace::SaberModelController *, Sombrero::FastColor> &refCallback = *callback;
+                    refCallback += {&SaberTrickModel::MarkRefreshColor, this};
+                }
+
+                getLogger().debug("Leaving SaberTrickModel construction!");
+            }
+        }
+    }
+
+    static bool isOptional(std::optional<bool> opt) {
+        return opt && opt.value();
+    }
+
+    ~SaberTrickModel() {
+        auto callback = Chroma::SaberAPI::getSaberChangedColorCallbackSafe();
+
+        if (callback) {
+            UnorderedEventCallback<int, GlobalNamespace::SaberModelController*, Sombrero::FastColor>& refCallback = *callback;
+            refCallback -= {&SaberTrickModel::MarkRefreshColor, this};
+        }
     }
 
     void SetActive(UnityEngine::GameObject* go, bool active) {
@@ -204,6 +231,105 @@ class SaberTrickModel {
         } else {
             go->SetActive(active);
         }
+    }
+
+    template<auto val>
+    using FPtrWrapper = il2cpp_utils::il2cpp_type_check::FPtrWrapper<val>;
+
+    void MarkRefreshColor(int saberType, GlobalNamespace::SaberModelController* model, Sombrero::FastColor color) {
+        if (saberType != (int) this->saberScript->saberType->saberType || model != origSaberModelController) {
+            getLogger().error("Coloring the wrong saber colored: %p and original %p ", model, origSaberModelController);
+            return;
+        } else {
+            getLogger().info("Marking color!");
+        }
+
+        newColor = std::make_optional(color);
+
+        if (SaberGO == TrickModel) {
+            RefreshColor();
+        }
+    }
+
+    // If only Chroma's Saber Colorizer could colorize this model
+    void RefreshColor() {
+        if (!newColor)
+            return;
+
+        auto color = *newColor;
+
+        if (isCustom) {
+            if (colorComponent && colorComponent.value()) {
+                getLogger().debug("Updating with Qosmetics!");
+                colorComponent.value()->UpdateColors();
+            } else {
+                getLogger().debug("Color component not found for custom saber!");
+            }
+        } else {
+            getLogger().debug("Coloring the %i saber!", saberScript->saberType->saberType.value);
+            static auto SetColor = FPtrWrapper<static_cast<void (UnityEngine::MaterialPropertyBlock::*)(Il2CppString *,
+                    UnityEngine::Color)>(&UnityEngine::MaterialPropertyBlock::SetColor)>::get();
+            static auto SetPropertyBlock = FPtrWrapper<static_cast<void (UnityEngine::Renderer::*)(
+                    UnityEngine::MaterialPropertyBlock *)>(&UnityEngine::Renderer::SetPropertyBlock)>::get();
+            static auto Refresh = FPtrWrapper<&GlobalNamespace::Parametric3SliceSpriteController::Refresh>::get();
+
+            Array<GlobalNamespace::SetSaberGlowColor *> *_setSaberGlowColors = trickSaberModelController->setSaberGlowColors;
+            Array<GlobalNamespace::SetSaberFakeGlowColor *> *_setSaberFakeGlowColors = trickSaberModelController->setSaberFakeGlowColors;
+
+            GlobalNamespace::SaberTrail *saberTrail = trickSaberModelController->saberTrail;
+            const Sombrero::FastColor &_trailTintColor = trickSaberModelController->initData->trailTintColor;
+            GlobalNamespace::TubeBloomPrePassLight *_saberLight = trickSaberModelController->saberLight;
+
+            saberTrail->color = (color * _trailTintColor).Linear();
+
+            if (_setSaberGlowColors) {
+                for (int i = 0; i < _setSaberGlowColors->Length(); i++) {
+                    auto setSaberGlowColor = _setSaberGlowColors->get(i);
+
+                    if (!setSaberGlowColor)
+                        continue;
+
+                    UnityEngine::MaterialPropertyBlock *materialPropertyBlock = setSaberGlowColor->materialPropertyBlock;
+                    if (!materialPropertyBlock) {
+                        setSaberGlowColor->materialPropertyBlock = UnityEngine::MaterialPropertyBlock::New_ctor();
+                        materialPropertyBlock = setSaberGlowColor->materialPropertyBlock;
+                    }
+
+                    auto propertyTintColorPairs = setSaberGlowColor->propertyTintColorPairs;
+
+                    if (propertyTintColorPairs && propertyTintColorPairs->Length() > 0) {
+                        std::vector<GlobalNamespace::SetSaberGlowColor::PropertyTintColorPair *> propertyTintColorPairsVec;
+                        propertyTintColorPairs->copy_to(propertyTintColorPairsVec);
+                        for (auto &propertyTintColorPair : propertyTintColorPairsVec) {
+                            if (propertyTintColorPair)
+                                SetColor(materialPropertyBlock, propertyTintColorPair->property, color * propertyTintColorPair->tintColor);
+                        }
+                    }
+
+                    if (setSaberGlowColor->meshRenderer)
+                        SetPropertyBlock(setSaberGlowColor->meshRenderer, materialPropertyBlock);
+                }
+            }
+
+            if (_setSaberFakeGlowColors) {
+                for (int i = 0; i < _setSaberFakeGlowColors->Length(); i++) {
+                    auto setSaberFakeGlowColor = _setSaberFakeGlowColors->get(i);
+                    if (!setSaberFakeGlowColor) continue;
+
+                    auto parametric3SliceSprite = setSaberFakeGlowColor->parametric3SliceSprite;
+                    parametric3SliceSprite->color = color * setSaberFakeGlowColor->tintColor;
+                    Refresh(parametric3SliceSprite);
+                }
+            }
+
+            if (_saberLight) {
+                _saberLight->color = color;
+            }
+        }
+
+        getLogger().debug("Done coloring!");
+        newColor = std::nullopt;
+
     }
 
     void SetupRigidbody(UnityEngine::Rigidbody* rigidbody, UnityEngine::GameObject* model) {
@@ -395,6 +521,8 @@ class SaberTrickModel {
         trickT->set_position(pos);
         trickT->set_rotation(rot);
         SetActive(OriginalSaberModel, false);
+
+        RefreshColor();
 
         SaberGO = TrickModel;
     }
