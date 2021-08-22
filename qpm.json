@@ -26,7 +26,9 @@
     {
       "id": "bs-utils",
       "versionRange": "^0.6.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "codegen",
@@ -34,19 +36,18 @@
       "additionalData": {}
     },
     {
-      "id": "custom-types",
-      "versionRange": "^0.12.0",
-      "additionalData": {}
-    },
-    {
       "id": "questui",
       "versionRange": "^0.10.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "config-utils",
       "versionRange": "^0.5.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "conditional-dependencies",
@@ -56,17 +57,23 @@
     {
       "id": "sombrero",
       "versionRange": "*",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "qosmetics-api",
       "versionRange": "*",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     },
     {
       "id": "chroma",
       "versionRange": "*",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     }
   ],
   "additionalData": {}
