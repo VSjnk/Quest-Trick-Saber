@@ -23,7 +23,7 @@ static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController = nullp
 static GlobalNamespace::SaberManager *saberManager = nullptr;
 
 void DisableBurnMarks(int saberType);
-void EnableBurnMarks(int saberType);
+void EnableBurnMarks(int saberType, bool force = false);
 
 void SaberManualUpdate(GlobalNamespace::Saber* saber);
 

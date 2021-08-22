@@ -83,7 +83,12 @@ extern "C" void setup(ModInfo& info) {
 
 //Saber* FakeSaber = nullptr;
 //Saber* RealSaber = nullptr;
-
+MAKE_HOOK_MATCH(SceneManager_SetActiveScene, &UnityEngine::SceneManagement::SceneManager::SetActiveScene, bool, UnityEngine::SceneManagement::Scene scene) {
+    // Burn mark crash fix on song end
+    EnableBurnMarks(0, true);
+    EnableBurnMarks(1, true);
+    return SceneManager_SetActiveScene(scene);
+}
 
 MAKE_HOOK_MATCH(SceneManager_Internal_SceneLoaded, &UnityEngine::SceneManagement::SceneManager::Internal_SceneLoaded, void, UnityEngine::SceneManagement::Scene scene, UnityEngine::SceneManagement::LoadSceneMode mode) {
     getLogger().info("SceneManager_Internal_SceneLoaded");
@@ -237,10 +242,10 @@ void SaberManualUpdate(GlobalNamespace::Saber* saber) {
     saber->saberBladeBottomPos = bottomTransform->get_position();
 }
 
-void EnableBurnMarks(int saberType) {
+void EnableBurnMarks(int saberType, bool force) {
     TrickManager& trickManager = saberType == 0 ? leftSaber : rightSaber;
 
-    if (trickManager.isDoingTricks())
+    if (!force && trickManager.isDoingTricks())
         return;
 
     for (auto *type : tBurnTypes) {
@@ -491,6 +496,7 @@ extern "C" void load() {
     getLogger().info("Installing hooks...");
 
     INSTALL_HOOK(getLogger(), SceneManager_Internal_SceneLoaded);
+    INSTALL_HOOK(getLogger(), SceneManager_SetActiveScene);
     INSTALL_HOOK(getLogger(), GameScenesManager_PushScenes);
     INSTALL_HOOK(getLogger(), Saber_ManualUpdate);
 
