@@ -36,6 +36,24 @@
 
 #include <string>
 
+#include "questui_components/shared/components/ViewComponent.hpp"
+#include "questui_components/shared/components/Text.hpp"
+#include "questui_components/shared/components/ScrollableContainer.hpp"
+#include "questui_components/shared/components/HoverHint.hpp"
+#include "questui_components/shared/components/Button.hpp"
+#include "questui_components/shared/components/Modal.hpp"
+#include "questui_components/shared/components/layouts/VerticalLayoutGroup.hpp"
+#include "questui_components/shared/components/layouts/HorizontalLayoutGroup.hpp"
+#include "questui_components/shared/components/settings/ToggleSetting.hpp"
+#include "questui_components/shared/components/settings/StringSetting.hpp"
+#include "questui_components/shared/components/settings/IncrementSetting.hpp"
+#include "questui_components/shared/components/settings/DropdownSetting.hpp"
+
+#include "ui/SeparatorLine.hpp"
+#include "ui/TitleSectText.hpp"
+
+#include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
+
 #ifdef HAS_CODEGEN
 
 #define AddConfigValueIncrementEnum(parent, enumConfigValue, enumClass, enumMap) BeatSaberUI::CreateIncrementSetting(parent, enumConfigValue.GetName() + " " + enumMap.at(clamp(0, (int) enumMap.size() - 1, (int) enumConfigValue.GetValue())), 0, 1, (float) clamp(0, (int) enumMap.size() - 1, (int) enumConfigValue.GetValue()), 0,(int) enumMap.size() - 1, il2cpp_utils::MakeDelegate<UnityEngine::Events::UnityAction_1<float>*>(classof(UnityEngine::Events::UnityAction_1<float>*), (void*)nullptr, +[](float value) { enumConfigValue.SetValue((int)value); }))
@@ -47,6 +65,8 @@
 
 using namespace GlobalNamespace;
 using namespace QuestUI;
+using namespace QuestUI_Components;
+using namespace TrickSaberUI;
 
 
 int clamp(int min, int max, int current) {
@@ -397,95 +417,84 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
     getLogger().info("DidActivate: %p, %d, %d, %d", self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
     if(firstActivation) {
-#define SEPARATOR_LINE BeatSaberUI::CreateStringSetting(textGrid->get_transform(), "", "")->set_interactable(false);
+
 //#define SEPARATOR_LINE CreateSeparatorLine(textGrid->get_transform());
 
+        static ViewComponent* view;
 
-        self->get_gameObject()->AddComponent<HMUI::Touchable*>();
-        UnityEngine::GameObject* container = BeatSaberUI::CreateScrollableSettingsContainer(self->get_transform());
+        if (view) {
+            delete view;
+            view = nullptr;
+        }
 
-        static const auto zero = Sombrero::FastVector2::zero();
         static const auto sectTextMult = 6.0f;
         static const auto sectText = Sombrero::FastVector2(60.0f, 10.0f) * sectTextMult;
 
-        auto* textGrid = container;
-//        textGrid->set_spacing(1);
+        // async ui because this causes lag spike
+        std::thread([self]{
+            view = new ViewComponent(self->get_transform(), {
+                new ScrollableContainer({
+                    new Text("TrickSaber settings. Restart to avoid crashes or side-effects."),
+                    new Text("Settings are saved when changed."),
+                    new Text("Not all settings have been tested. Please use with caution."),
 
-        BeatSaberUI::CreateText(textGrid->get_transform(), "TrickSaber settings. Restart to avoid crashes or side-effects.");
+                    new TitleSectText("Toggles and switches for buttons."),
+                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseTrigger),
+                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonOne),
+                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonTwo),
+                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseGrip),
+                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseThumbstick),
+                    new SeparatorLine(),
+                    new TitleSectText("Preferences."),
+                    new ConfigUtilsToggleSetting(getPluginConfig().NoTricksWhileNotes),
+                    new ConfigUtilsToggleSetting(getPluginConfig().VibrateOnReturn),
+                    new ConfigUtilsToggleSetting(getPluginConfig().IsVelocityDependent),
+                    new ConfigUtilsToggleSetting(getPluginConfig().MoveWhileThrown),
+                    new ConfigUtilsToggleSetting(getPluginConfig().CompleteRotationMode),
+                    new ConfigUtilsToggleSetting(getPluginConfig().SlowmoDuringThrow),
+                    new SeparatorLine(),
+                    new TitleSectText("Numbers and math. Threshold values"),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().GripThreshold, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().ControllerSnapThreshold, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().ThumbstickThreshold, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().TriggerThreshold, 2, 0.01),
 
-        BeatSaberUI::CreateText(textGrid->get_transform(), "Settings are saved when changed.");
+                    new SeparatorLine(),
+                    new TitleSectText("Speed and velocity manipulation"),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().SpinSpeed, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().ThrowVelocity, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().ReturnSpeed, 2, 0.01),
 
-        BeatSaberUI::CreateText(textGrid->get_transform(), "Not all settings have been tested. Please use with caution.");
+                    new SeparatorLine(),
+                    new TitleSectText("Technical numbers, please avoid."),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().SlowmoStepAmount, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().SlowmoAmount, 2, 0.01),
+                    new ConfigUtilsIncrementSetting(getPluginConfig().VelocityBufferSize, 0, 1),
+                    new SeparatorLine(),
+                    new TitleSectText("Actions Remapping (UI is very funky here)"),
+                    (new TitleSectText("Freeze throw freezes the saber while thrown"))->with([](Text* text) {
+                        text->mutateData([](MutableTextData data){
+                            data.fontSize = data.fontSize.value_or(0) * 0.7;
+                            return data;
+                        });
+                    }),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().TriggerAction),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ButtonOneAction),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ButtonTwoAction),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ButtonOneAction),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().GripAction),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ThumbstickAction),
+                    new TitleSectText("Misc"),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().SpinDirection),
+                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ThumbstickDirection)
+                    })
+            });
 
-        SEPARATOR_LINE
+            QuestUI::MainThreadScheduler::Schedule([]{
+                view->render();
+            });
+        }).detach();
 
-//        buttonsGrid->set_spacing(1);
-
-        auto* boolGrid = container;
-
-        BeatSaberUI::CreateText(boolGrid->get_transform(), "Toggles and switches for buttons.", false)->set_fontSize(sectTextMult);
-
-
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseTrigger)->get_gameObject(),"Inverts the trigger button");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseButtonOne)->get_gameObject(),"Inverts the button one toggle.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseButtonTwo)->get_gameObject(),"Inverts the button two toggle.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseGrip)->get_gameObject(),"Inverts the grip toggle.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().ReverseThumbstick)->get_gameObject(),"Inverts the thumbstick direction.");
-
-        SEPARATOR_LINE
-        BeatSaberUI::CreateText(boolGrid->get_transform(), "Preferences.", false)->set_fontSize(sectTextMult);
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().NoTricksWhileNotes)->get_gameObject(),"Doesn't allow tricks while notes are on screen");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().VibrateOnReturn)->get_gameObject(),"Makes the controller vibrate when it returns from being thrown");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().IsVelocityDependent)->get_gameObject(),"Makes the spin speed velocity dependent.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().MoveWhileThrown)->get_gameObject(),"Makes the saber while thrown be physically affected by your controller rotation.");
-        // TODO: Fix or remove
-        //        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().EnableTrickCutting)->get_gameObject(),"Allows for physics to apply with the tricks. DOES NOT WORK AND IS VERY BROKEN.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().CompleteRotationMode)->get_gameObject(),"Allows for the spin rotation to go all directions.");
-        BeatSaberUI::AddHoverHint(AddConfigValueToggle(boolGrid->get_transform(), getPluginConfig().SlowmoDuringThrow)->get_gameObject(),"Makes the thrown saber act slow-mo like.");
-
-        auto* floatGrid = container;
-        SEPARATOR_LINE
-        BeatSaberUI::CreateText(floatGrid->get_transform(), "Numbers and math. Threshold values", false)->set_fontSize(sectTextMult);
-//        floatGrid->set_spacing(1);
-
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().GripThreshold, 2, 0.01, 0, 1)->get_gameObject(),"The deadzone or minimum amount of input required to trigger the grip.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ControllerSnapThreshold, 2, 0.01, 0, 1)->get_gameObject(),"The deadzone or minimum amount of input required for the controller to snap.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ThumbstickThreshold, 2, 0.01, 0, 1)->get_gameObject(),"The deadzone or minimum amount of input required to trigger the thumbstick.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().TriggerThreshold, 2, 0.01, 0, 1)->get_gameObject(),"The deadzone or minimum amount of input required to trigger.");
-
-        SEPARATOR_LINE
-        BeatSaberUI::CreateText(floatGrid->get_transform(), "Speed and velocity manipulation", false)->set_fontSize(sectTextMult);
-
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SpinSpeed, 1, 0.1, 0, 10)->get_gameObject(),"The speed the saber spins at.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ThrowVelocity, 1, 0.1, 0, 10)->get_gameObject(),"The velocity of the saber when you throw it.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().ReturnSpeed, 1, 0.1, 0, 10)->get_gameObject(),"The speed in which the saber returns to your hand.");
-
-        SEPARATOR_LINE
-        BeatSaberUI::CreateText(floatGrid->get_transform(), "Technical numbers, please avoid.", false)->set_fontSize(sectTextMult);
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SlowmoStepAmount, 1, 0.1, 0, 10)->get_gameObject(),"The slow motion time scale amount.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementFloat(floatGrid->get_transform(), getPluginConfig().SlowmoAmount, 2, 0.1, 0, 10)->get_gameObject(),"The intensity of the slow motion.");
-        BeatSaberUI::AddHoverHint(AddConfigValueIncrementInt(floatGrid->get_transform(), getPluginConfig().VelocityBufferSize, 1, 0, 10)->get_gameObject(),"Technical number for the size of the list that holds velocity throughout time.");
-
-        auto* actionGrid = container;
-        SEPARATOR_LINE
-        BeatSaberUI::CreateText(actionGrid->get_transform(), "Actions Remapping (UI is very funky here)", false)->set_fontSize(sectTextMult);
-        BeatSaberUI::CreateText(actionGrid->get_transform(), "Freeze throw freezes the saber while thrown", false)->set_fontSize(sectTextMult * 0.7);
-//        actionGrid->set_name(il2cpp_utils::newcsstr("Actions"));
-//        actionGrid->set_spacing(1);
-
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().TriggerAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the trigger performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().ButtonOneAction, TrickAction, ACTION_NAMES,ACTION_REVERSE_NAMES)->get_gameObject(),"The action the button one performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().ButtonTwoAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the button two performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().GripAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the grip button performs.");
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(actionGrid->get_transform(), getPluginConfig().ThumbstickAction, TrickAction, ACTION_NAMES, ACTION_REVERSE_NAMES)->get_gameObject(),"The action the thumbstick performs.");
-
-        SEPARATOR_LINE
-        auto* miscGrid = container;
-        BeatSaberUI::CreateText(miscGrid->get_transform(), "Misc", false)->set_fontSize(sectTextMult);
-//        miscGrid->set_spacing(1);
-
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(miscGrid->get_transform(), getPluginConfig().SpinDirection, TrickAction, SPIN_DIR_NAMES, SPIN_DIR_REVERSE_NAMES)->get_gameObject(),"The direction of spinning. Still dependent on reverse button");
-        BeatSaberUI::AddHoverHint(AddConfigValueDropdownEnum(miscGrid->get_transform(), getPluginConfig().ThumbstickDirection, TrickAction, THUMBSTICK_DIR_NAMES, THUMBSTICK_DIR_REVERSE_NAMES)->get_gameObject(),"The direction of the thumbsticks for tricks. ");
 
     }
 }

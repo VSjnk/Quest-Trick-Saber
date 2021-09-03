@@ -160,10 +160,10 @@ class SaberTrickModel {
                     UnorderedEventCallback<int, GlobalNamespace::SaberModelController *, Sombrero::FastColor> &refCallback = *callback;
                     refCallback += {&SaberTrickModel::MarkRefreshColor, this};
                 }
-
-                getLogger().debug("Leaving SaberTrickModel construction!");
             }
         }
+
+        getLogger().debug("Leaving SaberTrickModel construction!");
     }
 
     static bool isOptional(std::optional<bool> opt) {
