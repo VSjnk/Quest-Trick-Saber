@@ -57,25 +57,7 @@ LOCAL_MODULE := questui
 LOCAL_EXPORT_C_INCLUDES := extern/questui
 LOCAL_SRC_FILES := extern/libquestui.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: songloader - version: 0.6.2
-include $(CLEAR_VARS)
-LOCAL_MODULE := songloader
-LOCAL_EXPORT_C_INCLUDES := extern/songloader
-LOCAL_SRC_FILES := extern/libsongloader.so
-include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: libcryptopp - version: 8.5.0
-include $(CLEAR_VARS)
-LOCAL_MODULE := cryptopp
-LOCAL_EXPORT_C_INCLUDES := extern/libcryptopp
-LOCAL_SRC_FILES := extern/libcryptopp.a
-include $(PREBUILT_STATIC_LIBRARY)
-# Creating prebuilt for dependency: libcurl - version: 7.78.0
-include $(CLEAR_VARS)
-LOCAL_MODULE := curl
-LOCAL_EXPORT_C_INCLUDES := extern/libcurl
-LOCAL_SRC_FILES := extern/libcurl.a
-include $(PREBUILT_STATIC_LIBRARY)
-# Creating prebuilt for dependency: questui_components - version: 0.1.2
+# Creating prebuilt for dependency: questui_components - version: 0.1.3
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui_components
 LOCAL_EXPORT_C_INCLUDES := extern/questui_components
