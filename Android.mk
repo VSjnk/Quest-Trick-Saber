@@ -78,7 +78,7 @@ include $(PREBUILT_STATIC_LIBRARY)
 # Creating prebuilt for dependency: questui_components - version: 0.1.2
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui_components
-LOCAL_EXPORT_C_INCLUDES := extern/questui_components/shared
+LOCAL_EXPORT_C_INCLUDES := extern/questui_components
 LOCAL_SRC_FILES := extern/libquestui_components.so
 include $(PREBUILT_SHARED_LIBRARY)
 
@@ -96,7 +96,7 @@ LOCAL_SHARED_LIBRARIES += custom-types
 LOCAL_SHARED_LIBRARIES += questui
 LOCAL_SHARED_LIBRARIES += questui_components
 LOCAL_LDLIBS += -llog
-LOCAL_CFLAGS += -I'extern/libil2cpp/il2cpp/libil2cpp' -DID='"TrickSaber"' -DVERSION='"0.3.7"' -I'./shared' -I'./extern' -isystem'extern/codegen/include' -O2
+LOCAL_CFLAGS += -I'extern/libil2cpp/il2cpp/libil2cpp' -DID='"TrickSaber"' -DVERSION='"0.3.7"' -I'./shared' -I'./extern' -I'./extern/questui_components/shared' -isystem'extern/codegen/include' -O2
 LOCAL_CPPFLAGS += -std=c++2a
 LOCAL_C_INCLUDES += ./include ./src
 include $(BUILD_SHARED_LIBRARY)

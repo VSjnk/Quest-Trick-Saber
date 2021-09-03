@@ -444,6 +444,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonTwo),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseGrip),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseThumbstick),
+
                     new SeparatorLine(),
                     new TitleSectText("Preferences."),
                     new ConfigUtilsToggleSetting(getPluginConfig().NoTricksWhileNotes),
@@ -452,6 +453,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
                     new ConfigUtilsToggleSetting(getPluginConfig().MoveWhileThrown),
                     new ConfigUtilsToggleSetting(getPluginConfig().CompleteRotationMode),
                     new ConfigUtilsToggleSetting(getPluginConfig().SlowmoDuringThrow),
+
                     new SeparatorLine(),
                     new TitleSectText("Numbers and math. Threshold values"),
                     new ConfigUtilsIncrementSetting(getPluginConfig().GripThreshold, 2, 0.01),

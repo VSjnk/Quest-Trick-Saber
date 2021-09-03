@@ -18,7 +18,7 @@ CONFIG_VALUE(ButtonOneAction, int, "ButtonOneAction",(int) TrickAction::None, "T
 CONFIG_VALUE(ButtonTwoAction, int, "ButtonTwoAction", (int) TrickAction::None, "The action the button two performs.");
 
 CONFIG_VALUE(VibrateOnReturn, bool, "VibrateOnReturn", true, "Makes the controller vibrate when it returns from being thrown");
-CONFIG_VALUE(NoTricksWhileNotes, bool, "NoTrMakes the controller vibrate when it returns from being thrownicksWhileNotes", false, "Doesn't allow tricks while notes are on screen");
+CONFIG_VALUE(NoTricksWhileNotes, bool, "NoTricksWhileNotes", false, "Doesn't allow tricks while notes are on screen");
 CONFIG_VALUE(ReverseTrigger, bool, "ReverseTrigger", false, "Inverts the trigger button");
 CONFIG_VALUE(ReverseGrip, bool, "ReverseGrip", false, "Inverts the grip toggle.");
 CONFIG_VALUE(ReverseThumbstick, bool, "ReverseThumbstick", false, "Inverts the thumbstick direction.");
