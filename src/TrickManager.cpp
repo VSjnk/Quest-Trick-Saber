@@ -7,6 +7,7 @@
 #include "UnityEngine/Time.hpp"
 #include "UnityEngine/Space.hpp"
 #include "UnityEngine/AudioSource.hpp"
+#include "PluginConfig.hpp"
 #include "main.hpp"
 #include <string>
 #include <algorithm>
@@ -483,6 +484,22 @@ static std::string actionToString(TrickState state) {
 }
 
 void TrickManager::CheckButtons() {
+
+    bool tricksEnabled = getPluginConfig().TricksEnabled.GetValue();
+
+    if (!tricksEnabled) {
+        if (_throwState == Started) {
+            ThrowReturn();
+        }
+
+        if (_spinState == Started) {
+            InPlaceRotationReturn();
+        }
+        doFrozenThrow = false;
+
+        return;
+    }
+
     // Disable tricks while viewing replays.
     auto* replayMode = getenv("ViewingReplay");
 

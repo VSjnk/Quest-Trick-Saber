@@ -11,6 +11,7 @@
 
 DECLARE_CONFIG(PluginConfig,
 
+CONFIG_VALUE(TricksEnabled, bool, "TricksEnabled", true, "Allows tricks to be performed.");
 CONFIG_VALUE(TriggerAction, int, "TriggerAction", (int) TrickAction::Throw, "The action the trigger performs.");
 CONFIG_VALUE(GripAction, int, "GripAction", (int) TrickAction::None, "The action the grip button performs.");
 CONFIG_VALUE(ThumbstickAction, int, "ThumbstickAction", (int)TrickAction::Spin, "The action the thumbstick performs.");
@@ -55,6 +56,7 @@ CONFIG_VALUE(SlowmoStepAmount, float, "SlowmoStepAmount", 0.02f, "The slow motio
 
 
     CONFIG_INIT_FUNCTION(
+        CONFIG_INIT_VALUE(TricksEnabled);
         CONFIG_INIT_VALUE(TriggerAction);
 
         CONFIG_INIT_VALUE(VibrateOnReturn);

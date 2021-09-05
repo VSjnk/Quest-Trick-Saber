@@ -26,6 +26,10 @@
 #include "TMPro/TextMeshPro.hpp"
 #include "questui/shared/CustomTypes/Components/Backgroundable.hpp"
 
+#include "UnityEngine/Canvas.hpp"
+#include "GlobalNamespace/PauseMenuManager.hpp"
+#include "GlobalNamespace/LevelBar.hpp"
+
 #include "sombrero/shared/Vector2Utils.hpp"
 
 #include "questui/shared/CustomTypes/Components/ExternalComponents.hpp"
@@ -51,6 +55,7 @@
 
 #include "ui/SeparatorLine.hpp"
 #include "ui/TitleSectText.hpp"
+#include "ui/TrickButtonToggled.hpp"
 
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
 
@@ -141,6 +146,38 @@ MAKE_HOOK_MATCH(GameScenesManager_PushScenes, &GlobalNamespace::GameScenesManage
     objectCount = 0;
 
     getLogger().debug("Leaving GameScenesManager_PushScenes");
+}
+
+
+MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMenuManager* self) {
+    PauseMenuManager_Start(self);
+    // trick saber pause manager UI
+
+
+    auto canvas = self->levelBar
+            ->get_transform()
+            ->get_parent()
+            ->get_parent()
+            ->GetComponent<UnityEngine::Canvas*>();
+    if (!canvas) return;
+
+
+
+    static ViewComponent* view = nullptr;
+
+    if (view) {
+        delete view;
+        view = nullptr;
+    }
+
+    auto toggle = new TrickSaberUI::TrickButtonToggle<true>(getPluginConfig().TricksEnabled);
+
+    view = new ViewComponent(canvas->get_transform(), {
+            toggle
+    });
+    view->render();
+    toggle->getTransform()->SetParent(self->levelBar->get_transform(), true);
+
 }
 
 MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* self) {
@@ -416,12 +453,11 @@ UnityEngine::UI::LayoutElement* CreateSeparatorLine(UnityEngine::Transform* pare
 void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling){
     getLogger().info("DidActivate: %p, %d, %d, %d", self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
+    static ViewComponent* view;
+
     if(firstActivation) {
 
 //#define SEPARATOR_LINE CreateSeparatorLine(textGrid->get_transform());
-
-        static ViewComponent* view;
-
         if (view) {
             delete view;
             view = nullptr;
@@ -439,6 +475,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
                     new Text("Not all settings have been tested. Please use with caution."),
 
                     new TitleSectText("Toggles and switches for buttons."),
+                    new TrickButtonToggle<false>(getPluginConfig().TricksEnabled),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseTrigger),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonOne),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonTwo),
@@ -498,6 +535,8 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
         }).detach();
 
 
+    } else {
+        view->render();
     }
 }
 
@@ -506,6 +545,7 @@ extern "C" void load() {
     // TODO: config menus
     getLogger().info("Installing hooks...");
 
+    INSTALL_HOOK(getLogger(), PauseMenuManager_Start);
     INSTALL_HOOK(getLogger(), SceneManager_Internal_SceneLoaded);
     INSTALL_HOOK(getLogger(), SceneManager_SetActiveScene);
     INSTALL_HOOK(getLogger(), GameScenesManager_PushScenes);
