@@ -524,8 +524,8 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
                     new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().GripAction),
                     new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ThumbstickAction),
                     new TitleSectText("Misc"),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().SpinDirection),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ThumbstickDirection)
+                    new ConfigUtilsEnumDropdownSetting<SpinDir>(getPluginConfig().SpinDirection),
+                    new ConfigUtilsEnumDropdownSetting<ThumbstickDir>(getPluginConfig().ThumbstickDirection)
                     })
             });
 
