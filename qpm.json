@@ -72,8 +72,7 @@
       "id": "chroma",
       "versionRange": "*",
       "additionalData": {
-        "private": true,
-        "localPath": "E:/SSDUse/ProgrammingProjects/CLionProjects/ChromaQuest"
+        "private": true
       }
     },
     {
