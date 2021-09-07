@@ -20,7 +20,7 @@ class ThumbstickHandler : public InputHandler {
         IsReversed = getPluginConfig().ReverseThumbstick.GetValue();
     }
 
-    float GetInputValue() {
+    float GetInputValue() override {
         // if (val != 0) getLogger().debug("ThumbstickHandler input value: %f", val);
         return UnityEngine::Input::GetAxis(_inputString);
     }

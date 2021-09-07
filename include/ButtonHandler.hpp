@@ -18,7 +18,7 @@ class ButtonHandler : public InputHandler {
           : getPluginConfig().ReverseButtonTwo.GetValue();
     }
 
-    float GetInputValue() {
+    float GetInputValue() override {
         return GlobalNamespace::OVRInput::Get(_button, _oculusController) ? 1.0f : 0.0f;
     }
 };

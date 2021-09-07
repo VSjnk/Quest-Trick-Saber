@@ -45,7 +45,7 @@ class GripHandler : public InputHandler {
 
     #define CALL_MEMFN_ON_PTR(ptr,memFn)  ((ptr)->*(memFn))
 
-    float GetInputValue() {
+    float GetInputValue() override {
         auto val = CALL_MEMFN_ON_PTR(this, _valueFunc)();
         // if (val != 0) getLogger().debug("GripHandler input value: %f", val);
         return val;

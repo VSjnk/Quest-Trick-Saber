@@ -13,7 +13,7 @@
   ],
   "libraryFiles": [
     "libbeatsaber-hook_2_3_0.so",
-    "libquestui_components",
+    "libquestui_components.so",
     "libbs-utils.so"
   ],
   "dependencies": [

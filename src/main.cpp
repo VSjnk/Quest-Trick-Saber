@@ -55,7 +55,6 @@
 
 #include "ui/SeparatorLine.hpp"
 #include "ui/TitleSectText.hpp"
-#include "ui/TrickButtonToggled.hpp"
 
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
 
@@ -149,35 +148,55 @@ MAKE_HOOK_MATCH(GameScenesManager_PushScenes, &GlobalNamespace::GameScenesManage
 }
 
 
+static ViewComponent *view = nullptr;
+static PauseMenuManager *loadedMenu = nullptr;
 MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMenuManager* self) {
     PauseMenuManager_Start(self);
     // trick saber pause manager UI
 
+    if (self->levelBar) {
 
-    auto canvas = self->levelBar
-            ->get_transform()
-            ->get_parent()
-            ->get_parent()
-            ->GetComponent<UnityEngine::Canvas*>();
-    if (!canvas) return;
+        getLogger().debug("Going to do pause menu");
+        auto canvas = self->levelBar
+                ->get_transform()
+                ->get_parent()
+                ->get_parent()
+                ->GetComponent<UnityEngine::Canvas *>();
+        if (!canvas) return;
 
 
+        if (loadedMenu != self || !view) {
+            loadedMenu = self;
+            getLogger().debug("Creating view");
 
-    static ViewComponent* view = nullptr;
+            getLogger().debug("Creating toggle");
+            auto toggle = new QuestUI_Components::ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
 
-    if (view) {
-        delete view;
-        view = nullptr;
+            view = new ViewComponent(canvas->get_transform(), {
+                    toggle
+            });
+            view->render();
+
+            auto* rectTransform = toggle->getTransform()->get_parent()->GetComponent<UnityEngine::RectTransform*>();
+
+            CRASH_UNLESS(rectTransform);
+            rectTransform->set_anchoredPosition({26, -15});
+            rectTransform->set_sizeDelta({-130, 7});
+
+            toggle->getTransform()->SetParent(self->levelBar->get_transform(), true);
+
+
+            getLogger().debug("Finished pause menu");
+        }
     }
+}
 
-    auto toggle = new TrickSaberUI::TrickButtonToggle<true>(getPluginConfig().TricksEnabled);
-
-    view = new ViewComponent(canvas->get_transform(), {
-            toggle
-    });
-    view->render();
-    toggle->getTransform()->SetParent(self->levelBar->get_transform(), true);
-
+MAKE_HOOK_MATCH(PauseMenuManager_OnDestroy, &PauseMenuManager::OnDestroy, void, PauseMenuManager* self) {
+    PauseMenuManager_OnDestroy(self);
+    getLogger().debug("Deleting view");
+    delete view;
+    view = nullptr;
+    getLogger().debug("Deleted the view due to pause menu gone!");
 }
 
 MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* self) {
@@ -475,7 +494,7 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
                     new Text("Not all settings have been tested. Please use with caution."),
 
                     new TitleSectText("Toggles and switches for buttons."),
-                    new TrickButtonToggle<false>(getPluginConfig().TricksEnabled),
+                    new QuestUI_Components::ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseTrigger),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonOne),
                     new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonTwo),
@@ -546,6 +565,7 @@ extern "C" void load() {
     getLogger().info("Installing hooks...");
 
     INSTALL_HOOK(getLogger(), PauseMenuManager_Start);
+    INSTALL_HOOK(getLogger(), PauseMenuManager_OnDestroy);
     INSTALL_HOOK(getLogger(), SceneManager_Internal_SceneLoaded);
     INSTALL_HOOK(getLogger(), SceneManager_SetActiveScene);
     INSTALL_HOOK(getLogger(), GameScenesManager_PushScenes);

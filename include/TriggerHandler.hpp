@@ -17,7 +17,7 @@ class TriggerHandler : public InputHandler {
         IsReversed = getPluginConfig().ReverseTrigger.GetValue();
     }
 
-    float GetInputValue() {
+    float GetInputValue() override {
         // if (val != 0) getLogger().debug("TriggerHandler input value: %f", val);
         return UnityEngine::Input::GetAxis(_inputString);
     }

@@ -27,7 +27,7 @@ LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
 LOCAL_SRC_FILES := extern/libbeatsaber-hook_2_3_0.so
 LOCAL_CPP_FEATURES += exceptions rtti
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: bs-utils - version: 0.6.3
+# Creating prebuilt for dependency: bs-utils - version: 0.6.4
 include $(CLEAR_VARS)
 LOCAL_MODULE := bs-utils
 LOCAL_EXPORT_C_INCLUDES := extern/bs-utils
@@ -57,7 +57,7 @@ LOCAL_MODULE := questui
 LOCAL_EXPORT_C_INCLUDES := extern/questui
 LOCAL_SRC_FILES := extern/libquestui.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: questui_components - version: 0.1.5
+# Creating prebuilt for dependency: questui_components - version: 0.1.12
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui_components
 LOCAL_EXPORT_C_INCLUDES := extern/questui_components
@@ -66,10 +66,9 @@ include $(PREBUILT_SHARED_LIBRARY)
 # Creating prebuilt for dependency: libcurl - version: 7.78.0
 include $(CLEAR_VARS)
 LOCAL_MODULE := curl
-LOCAL_EXPORT_C_INCLUDES := extern/libcurlf
+LOCAL_EXPORT_C_INCLUDES := extern/libcurl
 LOCAL_SRC_FILES := extern/libcurl.a
 include $(PREBUILT_STATIC_LIBRARY)
-
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := TrickSaber
