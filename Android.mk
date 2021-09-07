@@ -25,7 +25,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := beatsaber-hook_2_3_0
 LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
 LOCAL_SRC_FILES := extern/libbeatsaber-hook_2_3_0.so
-LOCAL_CPP_FEATURES += exceptions rtti
+LOCAL_CPP_FEATURES += exceptions
 include $(PREBUILT_SHARED_LIBRARY)
 # Creating prebuilt for dependency: bs-utils - version: 0.6.4
 include $(CLEAR_VARS)
@@ -63,12 +63,6 @@ LOCAL_MODULE := questui_components
 LOCAL_EXPORT_C_INCLUDES := extern/questui_components
 LOCAL_SRC_FILES := extern/libquestui_components.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: libcurl - version: 7.78.0
-include $(CLEAR_VARS)
-LOCAL_MODULE := curl
-LOCAL_EXPORT_C_INCLUDES := extern/libcurl
-LOCAL_SRC_FILES := extern/libcurl.a
-include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := TrickSaber
@@ -82,9 +76,8 @@ LOCAL_SHARED_LIBRARIES += codegen_0_13_0
 LOCAL_SHARED_LIBRARIES += custom-types
 LOCAL_SHARED_LIBRARIES += questui
 LOCAL_SHARED_LIBRARIES += questui_components
-LOCAL_STATIC_LIBRARIES += curl
 LOCAL_LDLIBS += -llog
 LOCAL_CFLAGS += -I'extern/libil2cpp/il2cpp/libil2cpp' -DID='"TrickSaber"' -DVERSION='"0.3.8"' -I'./shared' -I'./extern' -I'./extern/questui_components/shared' -isystem'extern/codegen/include' -O2
-LOCAL_CPPFLAGS += -std=c++2a
+LOCAL_CPPFLAGS += -std=c++2a -frtti
 LOCAL_C_INCLUDES += ./include ./src
 include $(BUILD_SHARED_LIBRARY)
