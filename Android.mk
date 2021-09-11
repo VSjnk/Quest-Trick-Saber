@@ -33,12 +33,6 @@ LOCAL_MODULE := bs-utils
 LOCAL_EXPORT_C_INCLUDES := extern/bs-utils
 LOCAL_SRC_FILES := extern/libbs-utils.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: codegen - version: 0.13.1
-include $(CLEAR_VARS)
-LOCAL_MODULE := codegen_0_13_1
-LOCAL_EXPORT_C_INCLUDES := extern/codegen
-LOCAL_SRC_FILES := extern/libcodegen_0_13_1.so
-include $(PREBUILT_SHARED_LIBRARY)
 # Creating prebuilt for dependency: modloader - version: 1.2.3
 include $(CLEAR_VARS)
 LOCAL_MODULE := modloader
@@ -51,18 +45,24 @@ LOCAL_MODULE := custom-types
 LOCAL_EXPORT_C_INCLUDES := extern/custom-types
 LOCAL_SRC_FILES := extern/libcustom-types.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: questui - version: 0.11.0
+# Creating prebuilt for dependency: questui - version: 0.11.1
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui
 LOCAL_EXPORT_C_INCLUDES := extern/questui
 LOCAL_SRC_FILES := extern/libquestui.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: questui_components - version: 0.1.14
+# Creating prebuilt for dependency: questui_components - version: 0.1.16
 include $(CLEAR_VARS)
 LOCAL_MODULE := questui_components
 LOCAL_EXPORT_C_INCLUDES := extern/questui_components
 LOCAL_SRC_FILES := extern/libquestui_components.a
 include $(PREBUILT_STATIC_LIBRARY)
+# Creating prebuilt for dependency: codegen - version: 0.14.0
+include $(CLEAR_VARS)
+LOCAL_MODULE := codegen
+LOCAL_EXPORT_C_INCLUDES := extern/codegen
+LOCAL_SRC_FILES := extern/libcodegen.so
+include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := TrickSaber
@@ -72,9 +72,9 @@ LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook,*.c)
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_2_3_0
 LOCAL_SHARED_LIBRARIES += bs-utils
-LOCAL_SHARED_LIBRARIES += codegen_0_13_1
 LOCAL_SHARED_LIBRARIES += custom-types
 LOCAL_SHARED_LIBRARIES += questui
+LOCAL_SHARED_LIBRARIES += codegen
 LOCAL_STATIC_LIBRARIES += questui_components
 LOCAL_LDLIBS += -llog
 LOCAL_CFLAGS += -I'extern/libil2cpp/il2cpp/libil2cpp' -DID='"TrickSaber"' -DVERSION='"0.3.8"' -I'./shared' -I'./extern' -I'./extern/questui_components/shared' -isystem'extern/codegen/include' -O2
