@@ -895,7 +895,7 @@ Coroutine TrickManager::CompleteRotation() {
     {
         _originalSaberModelT->Rotate(Sombrero::FastVector3::get_right() * _finalSpinSpeed);
         angle = Sombrero::FastQuaternion::Angle(_originalSaberModelT->get_localRotation(), Quaternion_Identity);
-        co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
+        co_yield reinterpret_cast<enumeratorT>(UnityEngine::WaitForEndOfFrame::New_ctor());
     }
 
     _originalSaberModelT->set_localRotation(Quaternion_Identity);
@@ -909,7 +909,7 @@ Coroutine TrickManager::LerpToOriginalRotation() {
     {
         rot = Sombrero::FastQuaternion::Lerp(rot, Quaternion_Identity, UnityEngine::Time::get_deltaTime() * 20);
         _originalSaberModelT->set_localRotation(rot);
-        co_yield reinterpret_cast<enumeratorT*>(UnityEngine::WaitForEndOfFrame::New_ctor());
+        co_yield reinterpret_cast<enumeratorT>(UnityEngine::WaitForEndOfFrame::New_ctor());
     }
 
     _originalSaberModelT->set_localRotation(Quaternion_Identity);
