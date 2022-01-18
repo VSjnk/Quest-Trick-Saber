@@ -12,7 +12,7 @@
 # }
 & $PSScriptRoot/build.ps1
 if ($?) {
-    adb push libs/arm64-v8a/libTrickSaber.so /sdcard/Android/data/com.beatgames.beatsaber/files/mods/libTrickSaber.so
+    adb push build/libTrickSaber.so /sdcard/Android/data/com.beatgames.beatsaber/files/mods/libTrickSaber.so
     if ($?) {
         adb shell am force-stop com.beatgames.beatsaber
         adb shell am start com.beatgames.beatsaber/com.unity3d.player.UnityPlayerActivity

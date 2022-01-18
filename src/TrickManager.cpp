@@ -3,7 +3,6 @@
 #include <optional>
 #include <queue>
 #include "../include/AllInputHandlers.hpp"
-#include "beatsaber-hook/shared/utils/instruction-parsing.hpp"
 #include "UnityEngine/Time.hpp"
 #include "UnityEngine/Space.hpp"
 #include "UnityEngine/AudioSource.hpp"
@@ -75,7 +74,7 @@ void ButtonMapping::Update() {
         il2cpp_functions::resolve_icall("UnityEngine.XR.InputTracking::GetDeviceIdAtXRNode"));
     getLogger().debug("getDeviceIdAtXRNode ptr offset: %lX", asOffset(getDeviceIdAtXRNode));
     auto deviceId = node; // getDeviceIdAtXRNode(node);
-    auto controllerInputDevice = UnityEngine::XR::InputDevice(deviceId); // CRASH_UNLESS(il2cpp_utils::New("UnityEngine.XR", "InputDevice", deviceId));
+    auto controllerInputDevice = UnityEngine::XR::InputDevice(deviceId, false); // CRASH_UNLESS(il2cpp_utils::New("UnityEngine.XR", "InputDevice", deviceId));
 
     getLogger().debug("oculusController: %i", (int)oculusController);
     bool isOculus = CRASH_UNLESS(il2cpp_utils::RunMethod<bool>("", "OVRInput", "IsControllerConnected", oculusController));
@@ -245,7 +244,7 @@ void TrickManager::Start() {
 
     // auto* rigidbody = CRASH_UNLESS(GetComponent(Saber, "UnityEngine", "Rigidbody"));
 
-    if (Saber->GetComponents<UnityEngine::BoxCollider *>()->Length() > 0)
+    if (Saber->GetComponents<UnityEngine::BoxCollider *>().Length() > 0)
         _collider = Saber->GetComponent<UnityEngine::BoxCollider *>();
 
     if (VRController)
@@ -725,7 +724,7 @@ void TrickManager::ThrowStart() {
                 audioTimeSyncController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::AudioTimeSyncController*>();
                 return;
             }
-            _audioSource = audioTimeSyncController->get_audioSource();
+            _audioSource = audioTimeSyncController->audioSource;
             if (_slowmoState != Started) {
                 // ApplySlowmoSmooth
                 _slowmoTimeScale = GetTimescale();
@@ -774,7 +773,7 @@ void TrickManager::ThrowReturn() {
         if ((_slowmoState == Started) && (other->_throwState != Started)) {
             _slowmoTimeScale = GetTimescale();
             _targetTimeScale = _originalTimeScale;
-            _audioSource = audioTimeSyncController->get_audioSource();
+            _audioSource = audioTimeSyncController->audioSource;
             getLogger().debug("Ending slowmo; TimeScale from %f to %f", _slowmoTimeScale, _targetTimeScale);
             _slowmoState = Ending;
         }
@@ -874,7 +873,7 @@ void TrickManager::InPlaceRotationReturn() {
 
         // Fern scratch that, finally got coroutines, thanks scad!
         auto coro = getPluginConfig().CompleteRotationMode.GetValue() ? CoroutineHelper::New(CompleteRotation()) : CoroutineHelper::New(LerpToOriginalRotation());
-        _saberTrickModel->saberScript->StartCoroutine(reinterpret_cast<enumeratorT*>(coro));
+        _saberTrickModel->saberScript->StartCoroutine(coro);
     }
 }
 

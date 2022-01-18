@@ -10,10 +10,7 @@
 //    })
 
 namespace TrickSaberUI {
-    class SeparatorLine : public QuestUI_Components::StringSetting {
-    public:
-        explicit SeparatorLine() : StringSetting("","") {
-            data.interactable = false;
-        }
-    };
+    auto SeparatorLine() {
+        return QUC::StringSetting("", nullptr, "", true, false);
+    }
 }

@@ -16,6 +16,7 @@ DROPDOWN_CREATE_ENUM_CLASS(TrickAction,
                            Spin,
                            None,
                            FreezeThrow)
+static const size_t TRICK_ACTION_COUNT = 4;
 
 
 DROPDOWN_CREATE_ENUM_CLASS(SpinDir,
@@ -23,7 +24,11 @@ DROPDOWN_CREATE_ENUM_CLASS(SpinDir,
                            Forward,
                            Backward)
 
+static const size_t SPIN_DIR_COUNT = 2;
+
 DROPDOWN_CREATE_ENUM_CLASS(ThumbstickDir,
                            STR_LIST("Horizontal", "Vertical"),
                            Horizontal,
                            Vertical)
+
+static const size_t THUMBSTICK_DIR_COUNT = 4;

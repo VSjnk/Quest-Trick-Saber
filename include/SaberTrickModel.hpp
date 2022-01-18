@@ -198,8 +198,8 @@ class SaberTrickModel {
                 auto trails = go->GetComponentsInChildren(TrailHelperType, !active);
                 go->get_transform()->set_localPosition(active ? zero : away);
 
-                for (int i = 0; i < trails->Length(); i++) {
-                    auto trail = reinterpret_cast<Qosmetics::TrailHelper *>(trails->get(i));
+                for (int i = 0; i < trails.Length(); i++) {
+                    auto trail = reinterpret_cast<Qosmetics::TrailHelper *>(trails.get(i));
 
 
                     if (trail) {
@@ -273,8 +273,8 @@ class SaberTrickModel {
                     UnityEngine::MaterialPropertyBlock *)>(&UnityEngine::Renderer::SetPropertyBlock)>::get();
             static auto Refresh = FPtrWrapper<&GlobalNamespace::Parametric3SliceSpriteController::Refresh>::get();
 
-            Array<GlobalNamespace::SetSaberGlowColor *> *_setSaberGlowColors = trickSaberModelController->setSaberGlowColors;
-            Array<GlobalNamespace::SetSaberFakeGlowColor *> *_setSaberFakeGlowColors = trickSaberModelController->setSaberFakeGlowColors;
+            auto _setSaberGlowColors = trickSaberModelController->setSaberGlowColors;
+            auto _setSaberFakeGlowColors = trickSaberModelController->setSaberFakeGlowColors;
 
             GlobalNamespace::SaberTrail *saberTrail = trickSaberModelController->saberTrail;
             const Sombrero::FastColor &_trailTintColor = trickSaberModelController->initData->trailTintColor;
@@ -283,8 +283,8 @@ class SaberTrickModel {
             saberTrail->color = (color * _trailTintColor).Linear();
 
             if (_setSaberGlowColors) {
-                for (int i = 0; i < _setSaberGlowColors->Length(); i++) {
-                    auto setSaberGlowColor = _setSaberGlowColors->get(i);
+                for (int i = 0; i < _setSaberGlowColors.Length(); i++) {
+                    auto setSaberGlowColor = _setSaberGlowColors.get(i);
 
                     if (!setSaberGlowColor)
                         continue;
@@ -297,10 +297,8 @@ class SaberTrickModel {
 
                     auto propertyTintColorPairs = setSaberGlowColor->propertyTintColorPairs;
 
-                    if (propertyTintColorPairs && propertyTintColorPairs->Length() > 0) {
-                        std::vector<GlobalNamespace::SetSaberGlowColor::PropertyTintColorPair *> propertyTintColorPairsVec;
-                        propertyTintColorPairs->copy_to(propertyTintColorPairsVec);
-                        for (auto &propertyTintColorPair : propertyTintColorPairsVec) {
+                    if (propertyTintColorPairs && propertyTintColorPairs.Length() > 0) {
+                        for (auto &propertyTintColorPair : propertyTintColorPairs) {
                             if (propertyTintColorPair)
                                 SetColor(materialPropertyBlock, propertyTintColorPair->property, color * propertyTintColorPair->tintColor);
                         }
@@ -312,8 +310,8 @@ class SaberTrickModel {
             }
 
             if (_setSaberFakeGlowColors) {
-                for (int i = 0; i < _setSaberFakeGlowColors->Length(); i++) {
-                    auto setSaberFakeGlowColor = _setSaberFakeGlowColors->get(i);
+                for (int i = 0; i < _setSaberFakeGlowColors.Length(); i++) {
+                    auto setSaberFakeGlowColor = _setSaberFakeGlowColors.get(i);
                     if (!setSaberFakeGlowColor) continue;
 
                     auto parametric3SliceSprite = setSaberFakeGlowColor->parametric3SliceSprite;
@@ -352,11 +350,11 @@ class SaberTrickModel {
         getLogger().debug("set_interpolation ptr offset: %lX", asOffset(set_interp));
         set_interp(rigidbody, 1);  // Interpolate
 
-        Array<UnityEngine::Collider*>* colliders = model->GetComponentsInChildren<UnityEngine::Collider*>(true); //CRASH_UNLESS(il2cpp_utils::RunMethod<Array<Il2CppObject*>*>(model, "GetComponentsInChildren", tCollider, true));
+        auto colliders = model->GetComponentsInChildren<UnityEngine::Collider*>(true); //CRASH_UNLESS(il2cpp_utils::RunMethod<Array<Il2CppObject*>*>(model, "GetComponentsInChildren", tCollider, true));
 
 
-        for (int i = 0; i < colliders->Length(); i++) {
-            colliders->values[i]->set_enabled(false);
+        for (int i = 0; i < colliders.Length(); i++) {
+            colliders.get(i)->set_enabled(false);
         }
     }
 
@@ -370,7 +368,7 @@ class SaberTrickModel {
         if (!basic) return;
         getLogger().debug("Fixing basic trick saber color!");
 
-        GlobalNamespace::SaberModelContainer* oldSaberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer*>(false)->values[0];
+        GlobalNamespace::SaberModelContainer* oldSaberModelContainer = SaberGO->GetComponentsInParent<GlobalNamespace::SaberModelContainer*>(false).get(0);
 
         GlobalNamespace::SaberTypeObject* _saberTypeObject = oldSaberModelContainer->saber->saberType;
         GlobalNamespace::SaberType saberType = _saberTypeObject->saberType; // CRASH_UNLESS(il2cpp_utils::GetPropertyValue(_saberTypeObject, "saberType"));
@@ -391,18 +389,16 @@ class SaberTrickModel {
         CRASH_UNLESS(origColorMgr);
         newSaberModelController->colorManager = origColorMgr;
 
-        auto* glows = newSaberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
-        getLogger().debug("_setSaberGlowColors.length: %i", (int) glows->Length());
-        for (int i = 0; i < glows->Length(); i++) {
-            GlobalNamespace::SetSaberGlowColor* obj = glows->values[i];
-
+        auto glows = newSaberModelController->setSaberGlowColors; // CRASH_UNLESS(il2cpp_utils::GetFieldValue<Il2CppArray*>(saberModelController, "_setSaberGlowColors"));
+        getLogger().debug("_setSaberGlowColors.length: %i", (int) glows.Length());
+        for (GlobalNamespace::SetSaberGlowColor* obj : glows) {
             obj->colorManager = origColorMgr;
         }
 
-        auto* fakeGlows = newSaberModelController->setSaberFakeGlowColors;
-        getLogger().debug("_setSaberFakeGlowColors.length: %i", (int) fakeGlows->Length());
-        for (int i = 0; i < fakeGlows->Length(); i++) {
-            GlobalNamespace::SetSaberFakeGlowColor* obj = fakeGlows->values[i];
+        auto fakeGlows = newSaberModelController->setSaberFakeGlowColors;
+        getLogger().debug("_setSaberFakeGlowColors.length: %i", (int) fakeGlows.Length());
+        for (int i = 0; i < fakeGlows.Length(); i++) {
+            GlobalNamespace::SetSaberFakeGlowColor* obj = fakeGlows.get(i);
 
             obj->colorManager = origColorMgr;
 
@@ -414,9 +410,9 @@ class SaberTrickModel {
 
         if (QosmeticsLoaded) {
             // Disable audio sources for Qosmetics sabers such as Katana sabers.
-            auto* audioSources = newSaberModelController->GetComponentsInChildren<UnityEngine::AudioSource*>(true);
-            for (int i = 0; i < audioSources->Length(); i++) {
-                auto source = audioSources->get(i);
+            auto audioSources = newSaberModelController->GetComponentsInChildren<UnityEngine::AudioSource*>(true);
+            for (int i = 0; i < audioSources.Length(); i++) {
+                auto source = audioSources.get(i);
 
                 if (source) {
                     source->set_playOnAwake(false);
@@ -499,11 +495,11 @@ class SaberTrickModel {
     }
 
     void FixTrails(UnityEngine::GameObject* model) const {
-        auto *trails = model->GetComponentsInChildren<GlobalNamespace::SaberTrail*>(true);
+        auto trails = model->GetComponentsInChildren<GlobalNamespace::SaberTrail*>(true);
 
-        getLogger().debug("trick saber trails.length: %i", (int) trails->Length());
-        for (int i = 0; i < trails->Length(); i++)  {
-            GlobalNamespace::SaberTrail *obj = trails->values[i];
+        getLogger().debug("trick saber trails.length: %i", (int) trails.Length());
+        for (int i = 0; i < trails.Length(); i++)  {
+            GlobalNamespace::SaberTrail *obj = trails.get(i);
 
             obj->movementData = reinterpret_cast<GlobalNamespace::IBladeMovementData*>(trailMovementData);
         }
@@ -552,15 +548,15 @@ class SaberTrickModel {
             return;
         }
 
-        Array<GlobalNamespace::SetSaberGlowColor*>* _setSaberGlowColors = modelController->setSaberGlowColors;
-        Array<GlobalNamespace::SetSaberFakeGlowColor*>* _setSaberFakeGlowColors = modelController->setSaberFakeGlowColors;
+        auto _setSaberGlowColors = modelController->setSaberGlowColors;
+        auto _setSaberFakeGlowColors = modelController->setSaberFakeGlowColors;
 
         auto saberTrail = modelController->saberTrail;
         saberTrail->color = (color * trickSaberModelController->initData->trailTintColor).get_linear();
 
         if (_setSaberGlowColors) {
-            for (int i = 0; i < _setSaberGlowColors->Length(); i++) {
-                auto setSaberGlowColor = _setSaberGlowColors->get(i);
+            for (int i = 0; i < _setSaberGlowColors.Length(); i++) {
+                auto setSaberGlowColor = _setSaberGlowColors.get(i);
 
                 if (!setSaberGlowColor)
                     continue;
@@ -573,10 +569,8 @@ class SaberTrickModel {
 
                 auto propertyTintColorPairs = setSaberGlowColor->propertyTintColorPairs;
 
-                if (propertyTintColorPairs && propertyTintColorPairs->Length() > 0) {
-                    std::vector<GlobalNamespace::SetSaberGlowColor::PropertyTintColorPair *> propertyTintColorPairsVec;
-                    propertyTintColorPairs->copy_to(propertyTintColorPairsVec);
-                    for (auto &propertyTintColorPair : propertyTintColorPairsVec) {
+                if (propertyTintColorPairs && propertyTintColorPairs.Length() > 0) {
+                    for (auto &propertyTintColorPair : propertyTintColorPairs) {
                         if (propertyTintColorPair)
                             materialPropertyBlock->SetColor(propertyTintColorPair->property,
                                                             color * propertyTintColorPair->tintColor);
@@ -589,8 +583,8 @@ class SaberTrickModel {
         }
 
         if (_setSaberFakeGlowColors) {
-            for (int i = 0; i < _setSaberFakeGlowColors->Length(); i++) {
-                auto setSaberFakeGlowColor = _setSaberFakeGlowColors->get(i);
+            for (int i = 0; i < _setSaberFakeGlowColors.Length(); i++) {
+                auto setSaberFakeGlowColor = _setSaberFakeGlowColors.get(i);
                 if (!setSaberFakeGlowColor) continue;
 
                 auto parametric3SliceSprite = setSaberFakeGlowColor->parametric3SliceSprite;

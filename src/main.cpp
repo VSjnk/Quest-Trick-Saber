@@ -40,7 +40,6 @@
 
 #include <string>
 
-#include "questui_components/shared/components/ViewComponent.hpp"
 #include "questui_components/shared/components/Text.hpp"
 #include "questui_components/shared/components/ScrollableContainer.hpp"
 #include "questui_components/shared/components/HoverHint.hpp"
@@ -69,7 +68,7 @@
 
 using namespace GlobalNamespace;
 using namespace QuestUI;
-using namespace QuestUI_Components;
+using namespace QUC;
 using namespace TrickSaberUI;
 
 
@@ -148,7 +147,7 @@ MAKE_HOOK_MATCH(GameScenesManager_PushScenes, &GlobalNamespace::GameScenesManage
 }
 
 
-static ViewComponent *view = nullptr;
+static RenderContext pauseMenuCtx = nullptr;
 static PauseMenuManager *loadedMenu = nullptr;
 MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMenuManager* self) {
     PauseMenuManager_Start(self);
@@ -165,25 +164,23 @@ MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMen
         if (!canvas) return;
 
 
-        if (loadedMenu != self || !view) {
+        if (loadedMenu != self) {
             loadedMenu = self;
             getLogger().debug("Creating view");
+            pauseMenuCtx = RenderContext(canvas->get_transform());
 
             getLogger().debug("Creating toggle");
-            auto toggle = new QuestUI_Components::ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
+            auto toggle = ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
 
-            view = new ViewComponent(canvas->get_transform(), {
-                    toggle
-            });
-            view->render();
+            auto toggleTransform = detail::renderSingle(toggle, pauseMenuCtx);
 
-            auto* rectTransform = toggle->getTransform()->get_parent()->GetComponent<UnityEngine::RectTransform*>();
+            auto* rectTransform = toggleTransform->get_parent()->GetComponent<UnityEngine::RectTransform*>();
 
             CRASH_UNLESS(rectTransform);
             rectTransform->set_anchoredPosition({26, -15});
             rectTransform->set_sizeDelta({-130, 7});
 
-            toggle->getTransform()->SetParent(self->levelBar->get_transform(), true);
+            toggleTransform->SetParent(self->levelBar->get_transform(), true);
 
 
             getLogger().debug("Finished pause menu");
@@ -194,8 +191,7 @@ MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMen
 MAKE_HOOK_MATCH(PauseMenuManager_OnDestroy, &PauseMenuManager::OnDestroy, void, PauseMenuManager* self) {
     PauseMenuManager_OnDestroy(self);
     getLogger().debug("Deleting view");
-    delete view;
-    view = nullptr;
+    pauseMenuCtx.destroyTree();
     getLogger().debug("Deleted the view due to pause menu gone!");
 }
 
@@ -212,11 +208,11 @@ MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* se
     // saber->sabertypeobject->sabertype
     //SaberType saberType = self->saberType->saberType;
     //getLogger().debug("SaberType: %i", (int) saberType);
-
-    auto *vrControllers = UnityEngine::Resources::FindObjectsOfTypeAll<VRController*>();
-
-
-    getLogger().info("VR controllers: %i", (int) vrControllers->Length());
+//
+//    auto vrControllers = UnityEngine::Resources::FindObjectsOfTypeAll<VRController*>();
+//
+//
+//    getLogger().info("VR controllers: %i", (int) vrControllers.Length());
 
 
 
@@ -285,12 +281,12 @@ void DisableBurnMarks(int saberType) {
     auto saberScript = trickManager.getTrickModel()->trickSaberScript;
 
     for (auto* type : tBurnTypes) {
-        auto *components = UnityEngine::Object::FindObjectsOfType(type);
+        auto components = UnityEngine::Object::FindObjectsOfType(type);
         if (!components)
             continue;
 
-        for (il2cpp_array_size_t i = 0; i < components->Length(); i++) {
-            auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components->values[i], "_sabers"));
+        for (il2cpp_array_size_t i = 0; i < components.Length(); i++) {
+            auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components.get(i), "_sabers"));
             if (!sabers)
                 continue;
 
@@ -325,13 +321,13 @@ void EnableBurnMarks(int saberType, bool force) {
         return;
 
     for (auto *type : tBurnTypes) {
-        auto *components = UnityEngine::Object::FindObjectsOfType(type);
+        auto components = UnityEngine::Object::FindObjectsOfType(type);
         if (!components)
             continue;
 
-        for (int i = 0; i < components->Length(); i++) {
-            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(components->values[i]->get_name())).c_str());
-            auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components->values[i], "_sabers"));
+        for (int i = 0; i < components.Length(); i++) {
+            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(components.get(i)->get_name())).c_str());
+            auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components.get(i), "_sabers"));
 
             if (!sabers) continue;
 
@@ -472,91 +468,70 @@ UnityEngine::UI::LayoutElement* CreateSeparatorLine(UnityEngine::Transform* pare
 void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling){
     getLogger().info("DidActivate: %p, %d, %d, %d", self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
-    static ViewComponent* view;
+    static RenderContext ctx(nullptr);
+
+    static const auto sectTextMult = 6.0f;
+    static const auto sectText = Sombrero::FastVector2(60.0f, 10.0f) * sectTextMult;
+
+    static ScrollableContainer tree(
+            Text("TrickSaber settings. Restart to avoid crashes or side-effects."),
+            Text("Settings are saved when changed."),
+            Text("Not all settings have been tested. Please use with caution."),
+
+            TitleSectText("Toggles and switches for buttons."),
+            QUC::ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled),
+            ConfigUtilsToggleSetting(getPluginConfig().ReverseTrigger),
+            ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonOne),
+            ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonTwo),
+            ConfigUtilsToggleSetting(getPluginConfig().ReverseGrip),
+            ConfigUtilsToggleSetting(getPluginConfig().ReverseThumbstick),
+
+            SeparatorLine(),
+            TitleSectText("Preferences."),
+            ConfigUtilsToggleSetting(getPluginConfig().NoTricksWhileNotes),
+            ConfigUtilsToggleSetting(getPluginConfig().VibrateOnReturn),
+            ConfigUtilsToggleSetting(getPluginConfig().IsVelocityDependent),
+            ConfigUtilsToggleSetting(getPluginConfig().MoveWhileThrown),
+            ConfigUtilsToggleSetting(getPluginConfig().CompleteRotationMode),
+            ConfigUtilsToggleSetting(getPluginConfig().SlowmoDuringThrow),
+
+            SeparatorLine(),
+            TitleSectText("Numbers and math. Threshold values"),
+            ConfigUtilsIncrementSetting(getPluginConfig().GripThreshold, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().ControllerSnapThreshold, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().ThumbstickThreshold, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().TriggerThreshold, nullptr, 2, 0.01),
+
+            SeparatorLine(),
+            TitleSectText("Speed and velocity manipulation"),
+            ConfigUtilsIncrementSetting(getPluginConfig().SpinSpeed, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().ThrowVelocity, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().ReturnSpeed, nullptr, 2, 0.01),
+
+            SeparatorLine(),
+            TitleSectText("Technical numbers, please avoid."),
+            ConfigUtilsIncrementSetting(getPluginConfig().SlowmoStepAmount, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().SlowmoAmount, nullptr, 2, 0.01),
+            ConfigUtilsIncrementSetting(getPluginConfig().VelocityBufferSize, nullptr, 0, 1),
+            SeparatorLine(),
+            TitleSectText("Actions Remapping (UI is very funky here)"),
+            TitleSectText("Freeze throw freezes the saber while thrown", SECT_TEXT_MULT * 0.7),
+            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().TriggerAction),
+            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ButtonOneAction),
+            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ButtonTwoAction),
+            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ButtonOneAction),
+            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().GripAction),
+            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ThumbstickAction),
+            TitleSectText("Misc"),
+            ConfigUtilsEnumDropdownSetting<SpinDir, SPIN_DIR_COUNT>(getPluginConfig().SpinDirection),
+            ConfigUtilsEnumDropdownSetting<ThumbstickDir, THUMBSTICK_DIR_COUNT>(getPluginConfig().ThumbstickDirection)
+    );
 
     if(firstActivation) {
-
-//#define SEPARATOR_LINE CreateSeparatorLine(textGrid->get_transform());
-        if (view) {
-            delete view;
-            view = nullptr;
-        }
-
-        static const auto sectTextMult = 6.0f;
-        static const auto sectText = Sombrero::FastVector2(60.0f, 10.0f) * sectTextMult;
-
-        // async ui because this causes lag spike
-        std::thread([self]{
-            view = new ViewComponent(self->get_transform(), {
-                new ScrollableContainer({
-                    new Text("TrickSaber settings. Restart to avoid crashes or side-effects."),
-                    new Text("Settings are saved when changed."),
-                    new Text("Not all settings have been tested. Please use with caution."),
-
-                    new TitleSectText("Toggles and switches for buttons."),
-                    new QuestUI_Components::ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled),
-                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseTrigger),
-                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonOne),
-                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseButtonTwo),
-                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseGrip),
-                    new ConfigUtilsToggleSetting(getPluginConfig().ReverseThumbstick),
-
-                    new SeparatorLine(),
-                    new TitleSectText("Preferences."),
-                    new ConfigUtilsToggleSetting(getPluginConfig().NoTricksWhileNotes),
-                    new ConfigUtilsToggleSetting(getPluginConfig().VibrateOnReturn),
-                    new ConfigUtilsToggleSetting(getPluginConfig().IsVelocityDependent),
-                    new ConfigUtilsToggleSetting(getPluginConfig().MoveWhileThrown),
-                    new ConfigUtilsToggleSetting(getPluginConfig().CompleteRotationMode),
-                    new ConfigUtilsToggleSetting(getPluginConfig().SlowmoDuringThrow),
-
-                    new SeparatorLine(),
-                    new TitleSectText("Numbers and math. Threshold values"),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().GripThreshold, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().ControllerSnapThreshold, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().ThumbstickThreshold, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().TriggerThreshold, 2, 0.01),
-
-                    new SeparatorLine(),
-                    new TitleSectText("Speed and velocity manipulation"),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().SpinSpeed, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().ThrowVelocity, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().ReturnSpeed, 2, 0.01),
-
-                    new SeparatorLine(),
-                    new TitleSectText("Technical numbers, please avoid."),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().SlowmoStepAmount, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().SlowmoAmount, 2, 0.01),
-                    new ConfigUtilsIncrementSetting(getPluginConfig().VelocityBufferSize, 0, 1),
-                    new SeparatorLine(),
-                    new TitleSectText("Actions Remapping (UI is very funky here)"),
-                    (new TitleSectText("Freeze throw freezes the saber while thrown"))->with([](Text* text) {
-                        text->mutateData([](MutableTextData data){
-                            data.fontSize = data.fontSize.value_or(0) * 0.7;
-                            return data;
-                        });
-                    }),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().TriggerAction),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ButtonOneAction),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ButtonTwoAction),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ButtonOneAction),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().GripAction),
-                    new ConfigUtilsEnumDropdownSetting<TrickAction>(getPluginConfig().ThumbstickAction),
-                    new TitleSectText("Misc"),
-                    new ConfigUtilsEnumDropdownSetting<SpinDir>(getPluginConfig().SpinDirection),
-                    new ConfigUtilsEnumDropdownSetting<ThumbstickDir>(getPluginConfig().ThumbstickDirection)
-                    })
-            });
-
-            QuestUI::MainThreadScheduler::Schedule([]{
-                view->render();
-            });
-        }).detach();
-
-
-    } else {
-        view->render();
+        ctx = RenderContext(self->get_transform());
     }
+
+    detail::renderSingle(tree, ctx);
 }
 
 extern "C" void load() {
