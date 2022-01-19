@@ -170,7 +170,7 @@ MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMen
             pauseMenuCtx = RenderContext(canvas->get_transform());
 
             getLogger().debug("Creating toggle");
-            auto toggle = ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
+            static auto toggle = ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
 
             auto toggleTransform = detail::renderSingle(toggle, pauseMenuCtx);
 
@@ -190,9 +190,6 @@ MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMen
 
 MAKE_HOOK_MATCH(PauseMenuManager_OnDestroy, &PauseMenuManager::OnDestroy, void, PauseMenuManager* self) {
     PauseMenuManager_OnDestroy(self);
-    getLogger().debug("Deleting view");
-    pauseMenuCtx.destroyTree();
-    getLogger().debug("Deleted the view due to pause menu gone!");
 }
 
 MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* self) {
