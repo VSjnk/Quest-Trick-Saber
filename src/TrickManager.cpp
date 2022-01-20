@@ -77,28 +77,19 @@ void ButtonMapping::Update() {
     auto controllerInputDevice = UnityEngine::XR::InputDevice(deviceId, false); // CRASH_UNLESS(il2cpp_utils::New("UnityEngine.XR", "InputDevice", deviceId));
 
     getLogger().debug("oculusController: %i", (int)oculusController);
-    bool isOculus = CRASH_UNLESS(il2cpp_utils::RunMethod<bool>("", "OVRInput", "IsControllerConnected", oculusController));
+
+    bool isOculus = GlobalNamespace::OVRInput::IsControllerConnected(oculusController);
     getLogger().debug("isOculus: %i", isOculus);
     auto vrSystem = isOculus ? VRSystem::Oculus : VRSystem::SteamVR;
 
     auto dir = getPluginConfig().ThumbstickDirection.GetValue();
 
     actionHandlers.clear();
-    actionHandlers[(int)getPluginConfig().TriggerAction.GetValue()].insert(std::unique_ptr<InputHandler>(
-        new TriggerHandler(node, getPluginConfig().TriggerThreshold.GetValue())
-    ));
-    actionHandlers[(int)getPluginConfig().GripAction.GetValue()].insert(std::unique_ptr<InputHandler>(
-        new GripHandler(isOculus, oculusController, controllerInputDevice, getPluginConfig().GripThreshold.GetValue())
-    ));
-    actionHandlers[(int)getPluginConfig().ThumbstickAction.GetValue()].insert(std::unique_ptr<InputHandler>(
-        new ThumbstickHandler(node, getPluginConfig().ThumbstickThreshold.GetValue(), dir)
-    ));
-    actionHandlers[(int)getPluginConfig().ButtonOneAction.GetValue()].insert(std::unique_ptr<InputHandler>(
-        new ButtonHandler(oculusController, GlobalNamespace::OVRInput::Button::One)
-    ));
-    actionHandlers[(int)getPluginConfig().ButtonTwoAction.GetValue()].insert(std::unique_ptr<InputHandler>(
-        new ButtonHandler(oculusController, GlobalNamespace::OVRInput::Button::Two)
-    ));
+    actionHandlers[getPluginConfig().TriggerAction.GetValue()].emplace(std::make_unique<TriggerHandler>(node, getPluginConfig().TriggerThreshold.GetValue()));
+    actionHandlers[getPluginConfig().GripAction.GetValue()].emplace(std::make_unique<GripHandler>(isOculus, oculusController, controllerInputDevice,getPluginConfig().GripThreshold.GetValue()));
+    actionHandlers[getPluginConfig().ThumbstickAction.GetValue()].emplace(std::make_unique<ThumbstickHandler>(node, getPluginConfig().ThumbstickThreshold.GetValue(), dir));
+    actionHandlers[getPluginConfig().ButtonOneAction.GetValue()].emplace(std::make_unique<ButtonHandler>(oculusController, GlobalNamespace::OVRInput::Button::One));
+    actionHandlers[getPluginConfig().ButtonTwoAction.GetValue()].emplace(std::make_unique<ButtonHandler>(oculusController, GlobalNamespace::OVRInput::Button::Two));
     if (actionHandlers[(int) TrickAction::Throw].empty()) {
         getLogger().warning("No inputs assigned to Throw! Throw will never trigger!");
     }
@@ -205,13 +196,12 @@ void TrickManager::Start2() {
     // note that this is the transform of the whole Saber (as opposed to just the model) iff TrickCutting
     _originalSaberModelT = saberGO->get_transform();
 
-
-    _hapticFeedbackController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::HapticFeedbackController*>();
-
-    hapticFeedbackThrowReturn.emplace(UnityEngine::ScriptableObject::CreateInstance<HapticPresetSO*>());
-    hapticFeedbackThrowReturn->duration = 0.15f;
-    hapticFeedbackThrowReturn->strength = 1.2f;
-    hapticFeedbackThrowReturn->frequency = 0.3f;
+    if (!hapticFeedbackThrowReturn) {
+        hapticFeedbackThrowReturn.emplace(UnityEngine::ScriptableObject::CreateInstance<HapticPresetSO *>());
+        hapticFeedbackThrowReturn->duration = 0.15f;
+        hapticFeedbackThrowReturn->strength = 1.2f;
+        hapticFeedbackThrowReturn->frequency = 0.3f;
+    }
 }
 
 void TrickManager::StaticClear() {
@@ -244,8 +234,7 @@ void TrickManager::Start() {
 
     // auto* rigidbody = CRASH_UNLESS(GetComponent(Saber, "UnityEngine", "Rigidbody"));
 
-    if (Saber->GetComponents<UnityEngine::BoxCollider *>().Length() > 0)
-        _collider = Saber->GetComponent<UnityEngine::BoxCollider *>();
+    _collider = Saber->GetComponent<UnityEngine::BoxCollider *>();
 
     if (VRController)
         _vrPlatformHelper = VRController->vrPlatformHelper;
@@ -351,8 +340,8 @@ void TrickManager::FixedUpdate() {
 void TrickManager::Update() {
     if (!_saberTrickModel) {
         _timeSinceStart += getDeltaTime();
-        if (getPluginConfig().EnableTrickCutting.GetValue() || _saberT->Find(_saberName) ||
-                _timeSinceStart > 1) {
+        if (getPluginConfig().EnableTrickCutting.GetValue() ||
+                _timeSinceStart > 1 || _saberT->Find(_saberName)) {
             Start2();
         } else {
             return;
@@ -425,9 +414,6 @@ void TrickManager::Update() {
         }
     }
     // TODO: no tricks while paused? https://github.com/ToniMacaroni/TrickSaber/blob/ea60dce35db100743e7ba72a1ffbd24d1472f1aa/TrickSaber/SaberTrickManager.cs#L66
-    if (audioTimeSyncController == nullptr) {
-        audioTimeSyncController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::AudioTimeSyncController*>();
-    }
 
     if (audioTimeSyncController != nullptr)
         CheckButtons();
@@ -517,6 +503,7 @@ void TrickManager::CheckButtons() {
     auto spinUp = CheckHandlersUp(_buttonMapping.actionHandlers[(int) TrickAction::Spin]);
 
     if (!objectDestroyTimes.empty()) {
+        auto time = getTimeMillis();
 //        std::vector<int64_t> copyObjectDestroyTimes = objectDestroyTimes;
 //        getLogger().debug("Object destroy");
         auto it = objectDestroyTimes.begin();
@@ -526,7 +513,7 @@ void TrickManager::CheckButtons() {
             if (!destroyTime)
                 continue;
 
-            if (getTimeMillis() - destroyTime > 700) {
+            if (time - destroyTime > 700) {
                 objectCount--;
                 if (objectCount < 0) objectCount = 0;
                 it = objectDestroyTimes.erase(it);
@@ -534,7 +521,6 @@ void TrickManager::CheckButtons() {
                 it++;
             }
         }
-        getLogger().debug("Destroyed objects");
     }
 
     // Make the sabers return to original state.
@@ -719,11 +705,6 @@ void TrickManager::ThrowStart() {
         setThrowState(Started);
 
         if (getPluginConfig().SlowmoDuringThrow.GetValue()) {
-            if (!audioTimeSyncController) {
-                getLogger().debug("No audio time sync controller?");
-                audioTimeSyncController = UnityEngine::Object::FindObjectOfType<GlobalNamespace::AudioTimeSyncController*>();
-                return;
-            }
             _audioSource = audioTimeSyncController->audioSource;
             if (_slowmoState != Started) {
                 // ApplySlowmoSmooth
@@ -962,7 +943,7 @@ void TrickManager::setSpinState(TrickState state) {
     _spinState = state;
 }
 
-bool TrickManager::isDoingTricks() {
+bool TrickManager::isDoingTricks() const {
     return _spinState != Inactive || _throwState != Inactive;
 }
 

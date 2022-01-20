@@ -133,7 +133,6 @@ MAKE_HOOK_MATCH(GameScenesManager_PushScenes, &GlobalNamespace::GameScenesManage
                      System::Action_1<Zenject::DiContainer*>* finishCallback) {
     getLogger().debug("GameScenesManager_PushScenes");
     GameScenesManager_PushScenes(self, scenesTransitionSetupData, minDuration, afterMinDurationCallback, finishCallback);
-    getConfig().Reload();
 
     if (getPluginConfig().EnableTrickCutting.GetValue() || getPluginConfig().SlowmoDuringThrow.GetValue()) {
         bs_utils::Submission::disable(modInfo);
@@ -153,8 +152,7 @@ MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMen
     PauseMenuManager_Start(self);
     // trick saber pause manager UI
 
-    if (self->levelBar) {
-
+    if (self->levelBar && loadedMenu != self) {
         getLogger().debug("Going to do pause menu");
         auto canvas = self->levelBar
                 ->get_transform()
@@ -163,28 +161,26 @@ MAKE_HOOK_MATCH(PauseMenuManager_Start, &PauseMenuManager::Start, void, PauseMen
                 ->GetComponent<UnityEngine::Canvas *>();
         if (!canvas) return;
 
+        loadedMenu = self;
+        getLogger().debug("Creating view");
+        pauseMenuCtx = RenderContext(canvas->get_transform());
 
-        if (loadedMenu != self) {
-            loadedMenu = self;
-            getLogger().debug("Creating view");
-            pauseMenuCtx = RenderContext(canvas->get_transform());
+        getLogger().debug("Creating toggle");
+        static auto toggle = ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
 
-            getLogger().debug("Creating toggle");
-            static auto toggle = ConfigUtilsToggleSetting(getPluginConfig().TricksEnabled);
+        auto toggleTransform = detail::renderSingle(toggle, pauseMenuCtx);
 
-            auto toggleTransform = detail::renderSingle(toggle, pauseMenuCtx);
+        auto *rectTransform = toggleTransform->get_parent()->GetComponent<UnityEngine::RectTransform *>();
 
-            auto* rectTransform = toggleTransform->get_parent()->GetComponent<UnityEngine::RectTransform*>();
+        CRASH_UNLESS(rectTransform);
+        rectTransform->set_anchoredPosition({26, -15});
+        rectTransform->set_sizeDelta({-130, 7});
 
-            CRASH_UNLESS(rectTransform);
-            rectTransform->set_anchoredPosition({26, -15});
-            rectTransform->set_sizeDelta({-130, 7});
-
-            toggleTransform->SetParent(self->levelBar->get_transform(), true);
+        toggleTransform->SetParent(self->levelBar->get_transform(), true);
 
 
-            getLogger().debug("Finished pause menu");
-        }
+        getLogger().debug("Finished pause menu");
+
     }
 }
 
@@ -230,7 +226,15 @@ MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* se
     //RealSaber = self;
 }
 
+MAKE_HOOK_MATCH(HapticFeedbackController_Awake, &GlobalNamespace::HapticFeedbackController::Awake, void, HapticFeedbackController* self) {
+    HapticFeedbackController_Awake(self);
+    _hapticFeedbackController = self;
+}
 
+MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &GlobalNamespace::AudioTimeSyncController::Awake, void, AudioTimeSyncController* self) {
+    AudioTimeSyncController_Awake(self);
+    audioTimeSyncController = self;
+}
 
 MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
     TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
@@ -266,32 +270,6 @@ MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
     trickManager.Update();
 }
 
-static std::vector<System::Type*> tBurnTypes;
-
-
-void DisableBurnMarks(int saberType) {
-    TrickManager& trickManager = saberType == 0 ? leftSaber : rightSaber;
-
-    if (!trickManager.getTrickModel())
-        return;
-
-    auto saberScript = trickManager.getTrickModel()->trickSaberScript;
-
-    for (auto* type : tBurnTypes) {
-        auto components = UnityEngine::Object::FindObjectsOfType(type);
-        if (!components)
-            continue;
-
-        for (il2cpp_array_size_t i = 0; i < components.Length(); i++) {
-            auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components.get(i), "_sabers"));
-            if (!sabers)
-                continue;
-
-            sabers->values[saberType] = (Saber *) saberScript;
-        }
-    }
-}
-
 void SaberManualUpdate(GlobalNamespace::Saber* saber) {
     TrickManager& trickManager = saber->saberType->saberType == 0 ? leftSaber : rightSaber;
 
@@ -311,33 +289,73 @@ void SaberManualUpdate(GlobalNamespace::Saber* saber) {
     saber->saberBladeBottomPos = bottomTransform->get_position();
 }
 
+static std::unordered_map<Il2CppClass*, FieldInfo*> sabersFieldInfo;
+static std::unordered_map<System::Type*, ArrayW<UnityEngine::Object*>> disabledBurnmarks;
+
+static std::vector<System::Type*> tBurnTypes;
+
+
+void DisableBurnMarks(int saberType) {
+    TrickManager const& trickManager = saberType == 0 ? leftSaber : rightSaber;
+
+    if (!trickManager.getTrickModel())
+        return;
+
+    auto const& saberScript = trickManager.getTrickModel()->trickSaberScript;
+
+    for (auto *type: tBurnTypes) {
+        auto& components = disabledBurnmarks[type];
+
+        if (!components)
+            components = UnityEngine::Object::FindObjectsOfType(type);
+
+        if (!components || components.size() == 0)
+            continue;
+
+        for (auto disabled: components) {
+            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(disabled->get_name())).c_str());
+
+            auto &sabersInfo = sabersFieldInfo[disabled->klass];
+            if (!sabersInfo)
+                sabersInfo = il2cpp_utils::FindField(disabled, "_sabers");
+
+            auto sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(disabled, sabersInfo));
+
+            if (!sabers) continue;
+
+            sabers->values[saberType] = (Saber *) saberScript;
+        }
+    }
+}
+
 void EnableBurnMarks(int saberType, bool force) {
-    TrickManager& trickManager = saberType == 0 ? leftSaber : rightSaber;
+    TrickManager const& trickManager = saberType == 0 ? leftSaber : rightSaber;
 
     if (!force && trickManager.isDoingTricks())
         return;
 
-    for (auto *type : tBurnTypes) {
-        auto components = UnityEngine::Object::FindObjectsOfType(type);
-        if (!components)
-            continue;
+    for (auto *type: tBurnTypes) {
+        auto& components = disabledBurnmarks[type];
 
-        for (int i = 0; i < components.Length(); i++) {
-            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(components.get(i)->get_name())).c_str());
-            auto *sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(components.get(i), "_sabers"));
+        if (!components || components.size() == 0) continue;
+
+        for (auto disabled: components) {
+            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(disabled->get_name())).c_str());
+            auto &sabersInfo = sabersFieldInfo[disabled->klass];
+            if (!sabersInfo)
+                sabersInfo = il2cpp_utils::FindField(disabled, "_sabers");
+
+            auto sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(disabled, sabersInfo));
 
             if (!sabers) continue;
 
             sabers->values[saberType] = saberType ? saberManager->rightSaber : saberManager->leftSaber;
         }
+        components = ArrayW<UnityEngine::Object*>();
     }
 }
 
-int64_t getTimeMillis() {
-    auto time = std::chrono::high_resolution_clock::now();
 
-    return std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count();
-}
 
 
 MAKE_HOOK_MATCH(FixedUpdate, &OculusVRHelper::FixedUpdate, void, GlobalNamespace::OculusVRHelper* self) {
@@ -380,12 +398,16 @@ MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabe
 MAKE_HOOK_MATCH(VRController_Update, &VRController::Update, void, GlobalNamespace::VRController* self) {
     VRController_Update(self);
 
-    if (self->get_node() == UnityEngine::XR::XRNode::LeftHand) {
-        leftSaber.VRController = self;
-    }
+    if (!leftSaber.VRController || !rightSaber.VRController) {
+        auto node = self->get_node();
 
-    if (self->get_node() == UnityEngine::XR::XRNode::RightHand) {
-        rightSaber.VRController = self;
+        if (node == UnityEngine::XR::XRNode::LeftHand) {
+            leftSaber.VRController = self;
+        }
+
+        if (node == UnityEngine::XR::XRNode::RightHand) {
+            rightSaber.VRController = self;
+        }
     }
 }
 

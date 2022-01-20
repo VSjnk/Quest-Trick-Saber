@@ -54,6 +54,7 @@ struct ButtonMapping {
         };
 };
 
+static GlobalNamespace::HapticFeedbackController* _hapticFeedbackController;  	// ::HapticFeedbackController
 
 class TrickManager {
     public:
@@ -73,7 +74,7 @@ class TrickManager {
 		static void StaticFixedUpdate();
 		void FixedUpdate();
         void Update();
-        bool isDoingTricks();
+        bool isDoingTricks() const;
 
         TrickSaber::TrickState getThrowState() const;
         TrickSaber::TrickState getSpinState() const;
@@ -111,7 +112,6 @@ class TrickManager {
         Sombrero::FastVector3 GetAverageVelocity();
         Sombrero::FastVector3 GetAverageAngularVelocity();
         GlobalNamespace::IVRPlatformHelper* _vrPlatformHelper;  			    // ::VRPlatformHelper
-        GlobalNamespace::HapticFeedbackController* _hapticFeedbackController;  	// ::HapticFeedbackController
         ButtonMapping _buttonMapping;
         UnityEngine::BoxCollider* _collider = nullptr;    		// BoxCollider
         Sombrero::FastVector3       _controllerPosition = Vector3_Zero;

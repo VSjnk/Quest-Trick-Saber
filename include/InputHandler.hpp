@@ -1,11 +1,11 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 class InputHandler {
   private:
-    float GetActivationValue(float val) {
+    [[nodiscard]] float GetActivationValue(float val) const {
         float value = abs(val);
         if (IsReversed) return 1.0f - value;
         return value;
@@ -14,15 +14,13 @@ class InputHandler {
   protected:
     bool IsDeactivated = true;
     float Threshold;
-    bool IsReversed;
+    bool IsReversed = false;
 
-    InputHandler(float threshold) {
-        Threshold = threshold;
-    }
+    constexpr InputHandler(float threshold) : Threshold(threshold) {}
 
   public:
-    virtual ~InputHandler() {}
-    virtual float GetInputValue() = 0;
+    virtual ~InputHandler() = default;
+    [[nodiscard]] virtual float GetInputValue() = 0;
 
     bool Activated(float& val) {
         auto value = GetInputValue();
