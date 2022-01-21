@@ -56,6 +56,7 @@
 #include "ui/TitleSectText.hpp"
 
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
+#include "GlobalNamespace/OVRInput.hpp"
 
 #ifdef HAS_CODEGEN
 
@@ -231,11 +232,6 @@ MAKE_HOOK_MATCH(HapticFeedbackController_Awake, &GlobalNamespace::HapticFeedback
     _hapticFeedbackController = self;
 }
 
-MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &GlobalNamespace::AudioTimeSyncController::Awake, void, AudioTimeSyncController* self) {
-    AudioTimeSyncController_Awake(self);
-    audioTimeSyncController = self;
-}
-
 MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
     TrickManager& trickManager = self == leftSaber.Saber ? leftSaber : rightSaber;
 
@@ -379,8 +375,8 @@ MAKE_HOOK_MATCH(Resume, &GamePause::Resume, void, GlobalNamespace::GamePause* se
     getLogger().debug("pause: %i", self->pause);
 }
 
-MAKE_HOOK_MATCH(AudioTimeSyncController_Start, &AudioTimeSyncController::Start, void, AudioTimeSyncController* self) {
-    AudioTimeSyncController_Start(self);
+MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &AudioTimeSyncController::Awake, void, AudioTimeSyncController* self) {
+    AudioTimeSyncController_Awake(self);
     audioTimeSyncController = self;
     getLogger().debug("audio time controller: %p", audioTimeSyncController);
 }
@@ -448,18 +444,6 @@ MAKE_HOOK_MATCH(NoteMissed, &BeatmapObjectManager::HandleNoteControllerNoteWasMi
     }
 
     NoteMissed(self, noteController);
-}
-
-
-
-template <class K, class V>
-std::vector<K> getKeys(std::map<K, V> map) {
-    std::vector<K> vector;
-    for (auto it = map.begin(); it != map.end(); it++) {
-        vector.push_back(it->first);
-    }
-
-    return vector;
 }
 
 UnityEngine::UI::LayoutElement* CreateSeparatorLine(UnityEngine::Transform* parent) {
@@ -571,7 +555,8 @@ extern "C" void load() {
     INSTALL_HOOK(getLogger(), Pause);
     INSTALL_HOOK(getLogger(), Resume);
 
-    INSTALL_HOOK(getLogger(), AudioTimeSyncController_Start);
+    INSTALL_HOOK(getLogger(), AudioTimeSyncController_Awake);
+    INSTALL_HOOK(getLogger(), HapticFeedbackController_Awake);
     INSTALL_HOOK(getLogger(), SaberManager_Start);
 
     INSTALL_HOOK(getLogger(), SaberClashChecker_AreSabersClashing);

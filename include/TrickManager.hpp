@@ -61,7 +61,7 @@ class TrickManager {
         void LogEverything();
         bool _isLeftSaber = false;
         GlobalNamespace::Saber* Saber;         // ::Saber
-        GlobalNamespace::VRController* VRController;  // ::VRController
+        GlobalNamespace::VRController* VRController = nullptr;  // ::VRController
 		TrickManager* other = nullptr;
 		static void StaticClear();
 		void Clear();
@@ -74,15 +74,15 @@ class TrickManager {
 		static void StaticFixedUpdate();
 		void FixedUpdate();
         void Update();
-        bool isDoingTricks() const;
+        [[nodiscard]] bool isDoingTricks() const;
 
-        TrickSaber::TrickState getThrowState() const;
-        TrickSaber::TrickState getSpinState() const;
-        UnityEngine::GameObject* getActiveSaber() const;
-        UnityEngine::GameObject* getTrickSaber() const;
-        UnityEngine::GameObject* getNormalSaber() const;
+        [[nodiscard]] TrickSaber::TrickState getThrowState() const;
+        [[nodiscard]] TrickSaber::TrickState getSpinState() const;
+        [[nodiscard]] UnityEngine::GameObject* getActiveSaber() const;
+        [[nodiscard]] UnityEngine::GameObject* getTrickSaber() const;
+        [[nodiscard]] UnityEngine::GameObject* getNormalSaber() const;
 
-        SaberTrickModel* getTrickModel() const;
+        [[nodiscard]] SaberTrickModel* getTrickModel() const;
 
 	protected:
         TrickSaber::TrickState _throwState;  // initialized in Start

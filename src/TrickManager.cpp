@@ -80,7 +80,6 @@ void ButtonMapping::Update() {
 
     bool isOculus = GlobalNamespace::OVRInput::IsControllerConnected(oculusController);
     getLogger().debug("isOculus: %i", isOculus);
-    auto vrSystem = isOculus ? VRSystem::Oculus : VRSystem::SteamVR;
 
     auto dir = getPluginConfig().ThumbstickDirection.GetValue();
 
@@ -217,6 +216,7 @@ void TrickManager::Clear() {
     delete _saberTrickModel;
     _saberTrickModel = nullptr;
     _originalSaberModelT = nullptr;
+    VRController = nullptr;
 }
 
 void TrickManager::Start() {
@@ -415,8 +415,8 @@ void TrickManager::Update() {
     }
     // TODO: no tricks while paused? https://github.com/ToniMacaroni/TrickSaber/blob/ea60dce35db100743e7ba72a1ffbd24d1472f1aa/TrickSaber/SaberTrickManager.cs#L66
 
-    if (audioTimeSyncController != nullptr)
-        CheckButtons();
+
+    CheckButtons();
 }
 
 ValueTuple TrickManager::GetTrackingPos() {
@@ -705,6 +705,10 @@ void TrickManager::ThrowStart() {
         setThrowState(Started);
 
         if (getPluginConfig().SlowmoDuringThrow.GetValue()) {
+            if (!audioTimeSyncController) {
+                getLogger().debug("No audio time sync controller?");
+                return;
+            }
             _audioSource = audioTimeSyncController->audioSource;
             if (_slowmoState != Started) {
                 // ApplySlowmoSmooth
