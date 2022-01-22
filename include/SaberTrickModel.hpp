@@ -179,7 +179,7 @@ class SaberTrickModel {
         }
     }
 
-    void SetActive(UnityEngine::GameObject* go, bool active) {
+    static void SetActive(UnityEngine::GameObject* go, bool active) {
         static bool QosmeticsLoaded = Modloader::getMods().contains("Qosmetics");
         static auto zero = UnityEngine::Vector3::get_zero();
         static auto away = UnityEngine::Vector3(999999, 999999, 999999);

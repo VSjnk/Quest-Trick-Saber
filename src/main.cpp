@@ -56,7 +56,6 @@
 #include "ui/TitleSectText.hpp"
 
 #include "questui/shared/CustomTypes/Components/MainThreadScheduler.hpp"
-#include "GlobalNamespace/OVRInput.hpp"
 
 #ifdef HAS_CODEGEN
 
@@ -105,12 +104,78 @@ extern "C" void setup(ModInfo& info) {
     getLogger().info("Leaving setup!");
 }
 
+
+static std::unordered_map<Il2CppClass*, FieldInfo*> sabersFieldInfo;
+static std::unordered_map<System::Type*, ArrayW<UnityEngine::Object*>> disabledBurnmarks;
+
+static std::vector<System::Type*> tBurnTypes;
+
+
+void DisableBurnMarks(int saberType) {
+    TrickManager const& trickManager = saberType == 0 ? leftSaber : rightSaber;
+
+    if (!trickManager.getTrickModel())
+        return;
+
+    auto const& saberScript = trickManager.getTrickModel()->trickSaberScript;
+
+    for (auto *type: tBurnTypes) {
+        auto& components = disabledBurnmarks[type];
+
+        if (!components)
+            components = UnityEngine::Object::FindObjectsOfType(type);
+
+        if (!components || components.size() == 0)
+            continue;
+
+        for (auto disabled: components) {
+            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(disabled->get_name())).c_str());
+
+            auto &sabersInfo = sabersFieldInfo[disabled->klass];
+            if (!sabersInfo)
+                sabersInfo = il2cpp_utils::FindField(disabled, "_sabers");
+
+            auto sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(disabled, sabersInfo));
+
+            if (!sabers) continue;
+
+            sabers->values[saberType] = (Saber *) saberScript;
+        }
+    }
+}
+
+void EnableBurnMarks(int saberType, bool force) {
+    TrickManager const& trickManager = saberType == 0 ? leftSaber : rightSaber;
+
+    if (!force && trickManager.isDoingTricks())
+        return;
+
+    for (auto *type: tBurnTypes) {
+        auto& components = disabledBurnmarks[type];
+
+        if (!components || components.size() == 0) continue;
+
+        for (auto disabled: components) {
+            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(disabled->get_name())).c_str());
+            auto &sabersInfo = sabersFieldInfo[disabled->klass];
+            if (!sabersInfo)
+                sabersInfo = il2cpp_utils::FindField(disabled, "_sabers");
+
+            auto sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(disabled, sabersInfo));
+
+            if (!sabers) continue;
+
+            sabers->values[saberType] = saberType ? saberManager->rightSaber : saberManager->leftSaber;
+        }
+    }
+}
+
+
 //Saber* FakeSaber = nullptr;
 //Saber* RealSaber = nullptr;
 MAKE_HOOK_MATCH(SceneManager_SetActiveScene, &UnityEngine::SceneManagement::SceneManager::SetActiveScene, bool, UnityEngine::SceneManagement::Scene scene) {
     // Burn mark crash fix on song end
-    EnableBurnMarks(0, true);
-    EnableBurnMarks(1, true);
+    disabledBurnmarks.clear();
     return SceneManager_SetActiveScene(scene);
 }
 
@@ -210,26 +275,22 @@ MAKE_HOOK_MATCH(SaberManager_Start, &SaberManager::Start, void, SaberManager* se
 
 
 
-    //if ((int) saberType == 0) {
-        getLogger().debug("Left?");
-//        leftSaber.VRController = vrControllersManager->get_node();
-        leftSaber.Saber = self->leftSaber;
-        leftSaber._isLeftSaber = true;
-        leftSaber.other = &rightSaber;
-        leftSaber.Start();
-    //} else {
-        getLogger().debug("Right?");
-//        rightSaber.VRController = vrControllersManager->rightVRController;
-        rightSaber.Saber = self->rightSaber;
-        rightSaber.other = &leftSaber;
-        rightSaber.Start();
-    //}
-    //RealSaber = self;
+
+    getLogger().debug("Left?");
+    leftSaber.Saber = self->leftSaber;
+    leftSaber._isLeftSaber = true;
+    leftSaber.other = &rightSaber;
+    leftSaber.Start();
+
+    getLogger().debug("Right?");
+    rightSaber.Saber = self->rightSaber;
+    rightSaber.other = &leftSaber;
+    rightSaber.Start();
 }
 
 MAKE_HOOK_MATCH(HapticFeedbackController_Awake, &GlobalNamespace::HapticFeedbackController::Awake, void, HapticFeedbackController* self) {
     HapticFeedbackController_Awake(self);
-    _hapticFeedbackController = self;
+    TrickManager::_hapticFeedbackController = self;
 }
 
 MAKE_HOOK_MATCH(Saber_ManualUpdate, &Saber::ManualUpdate, void, Saber* self) {
@@ -285,72 +346,6 @@ void SaberManualUpdate(GlobalNamespace::Saber* saber) {
     saber->saberBladeBottomPos = bottomTransform->get_position();
 }
 
-static std::unordered_map<Il2CppClass*, FieldInfo*> sabersFieldInfo;
-static std::unordered_map<System::Type*, ArrayW<UnityEngine::Object*>> disabledBurnmarks;
-
-static std::vector<System::Type*> tBurnTypes;
-
-
-void DisableBurnMarks(int saberType) {
-    TrickManager const& trickManager = saberType == 0 ? leftSaber : rightSaber;
-
-    if (!trickManager.getTrickModel())
-        return;
-
-    auto const& saberScript = trickManager.getTrickModel()->trickSaberScript;
-
-    for (auto *type: tBurnTypes) {
-        auto& components = disabledBurnmarks[type];
-
-        if (!components)
-            components = UnityEngine::Object::FindObjectsOfType(type);
-
-        if (!components || components.size() == 0)
-            continue;
-
-        for (auto disabled: components) {
-            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(disabled->get_name())).c_str());
-
-            auto &sabersInfo = sabersFieldInfo[disabled->klass];
-            if (!sabersInfo)
-                sabersInfo = il2cpp_utils::FindField(disabled, "_sabers");
-
-            auto sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(disabled, sabersInfo));
-
-            if (!sabers) continue;
-
-            sabers->values[saberType] = (Saber *) saberScript;
-        }
-    }
-}
-
-void EnableBurnMarks(int saberType, bool force) {
-    TrickManager const& trickManager = saberType == 0 ? leftSaber : rightSaber;
-
-    if (!force && trickManager.isDoingTricks())
-        return;
-
-    for (auto *type: tBurnTypes) {
-        auto& components = disabledBurnmarks[type];
-
-        if (!components || components.size() == 0) continue;
-
-        for (auto disabled: components) {
-            getLogger().debug("Burn Type: %s", to_utf8(csstrtostr(disabled->get_name())).c_str());
-            auto &sabersInfo = sabersFieldInfo[disabled->klass];
-            if (!sabersInfo)
-                sabersInfo = il2cpp_utils::FindField(disabled, "_sabers");
-
-            auto sabers = CRASH_UNLESS(il2cpp_utils::GetFieldValue<Array<Saber *> *>(disabled, sabersInfo));
-
-            if (!sabers) continue;
-
-            sabers->values[saberType] = saberType ? saberManager->rightSaber : saberManager->leftSaber;
-        }
-        components = ArrayW<UnityEngine::Object*>();
-    }
-}
-
 
 
 
@@ -375,10 +370,10 @@ MAKE_HOOK_MATCH(Resume, &GamePause::Resume, void, GlobalNamespace::GamePause* se
     getLogger().debug("pause: %i", self->pause);
 }
 
-MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &AudioTimeSyncController::Awake, void, AudioTimeSyncController* self) {
+MAKE_HOOK_MATCH(AudioTimeSyncController_Awake, &AudioTimeSyncController::Start, void, AudioTimeSyncController* self) {
     AudioTimeSyncController_Awake(self);
-    audioTimeSyncController = self;
-    getLogger().debug("audio time controller: %p", audioTimeSyncController);
+    TrickManager::audioTimeSyncController = self;
+    getLogger().debug("audio time controller: %p", self);
 }
 
 MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabersClashing, bool, SaberClashChecker* self, ByRef<UnityEngine::Vector3> clashingPoint) {
@@ -394,16 +389,14 @@ MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &SaberClashChecker::AreSabe
 MAKE_HOOK_MATCH(VRController_Update, &VRController::Update, void, GlobalNamespace::VRController* self) {
     VRController_Update(self);
 
-    if (!leftSaber.VRController || !rightSaber.VRController) {
-        auto node = self->get_node();
+    auto node = self->get_node();
 
-        if (node == UnityEngine::XR::XRNode::LeftHand) {
-            leftSaber.VRController = self;
-        }
+    if (node == UnityEngine::XR::XRNode::LeftHand) {
+        leftSaber.VRController = self;
+    }
 
-        if (node == UnityEngine::XR::XRNode::RightHand) {
-            rightSaber.VRController = self;
-        }
+    if (node == UnityEngine::XR::XRNode::RightHand) {
+        rightSaber.VRController = self;
     }
 }
 
@@ -586,4 +579,12 @@ extern "C" void load() {
     QuestUI::Init();
     QuestUI::Register::RegisterModSettingsViewController(modInfo, DidActivate);
     getLogger().info("Successfully installed Settings UI!");
+
+    bs_utils::Submission::disable(modInfo);
+    bs_utils::Submission::enable(modInfo);
+
+    // Eager loading to stop freezing on first song select
+    if (getPluginConfig().EnableTrickCutting.GetValue() || getPluginConfig().SlowmoDuringThrow.GetValue()) {
+        bs_utils::Submission::disable(modInfo);
+    }
 }

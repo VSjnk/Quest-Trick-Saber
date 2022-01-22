@@ -19,7 +19,6 @@ inline int objectCount = 0;
 
 static ModInfo modInfo;
 const Logger& logger();
-static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController = nullptr;
 static GlobalNamespace::SaberManager *saberManager = nullptr;
 
 void DisableBurnMarks(int saberType);

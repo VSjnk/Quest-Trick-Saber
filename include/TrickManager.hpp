@@ -1,7 +1,7 @@
 #pragma once
 
 #include <dlfcn.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unordered_map>
 #include <unordered_set>
 #include <UnityEngine/BoxCollider.hpp>
@@ -54,10 +54,11 @@ struct ButtonMapping {
         };
 };
 
-static GlobalNamespace::HapticFeedbackController* _hapticFeedbackController;  	// ::HapticFeedbackController
-
 class TrickManager {
     public:
+        inline static GlobalNamespace::AudioTimeSyncController *audioTimeSyncController;
+        inline static GlobalNamespace::HapticFeedbackController* _hapticFeedbackController;  	// ::HapticFeedbackController
+
         void LogEverything();
         bool _isLeftSaber = false;
         GlobalNamespace::Saber* Saber;         // ::Saber
