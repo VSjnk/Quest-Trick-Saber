@@ -400,21 +400,13 @@ MAKE_HOOK_MATCH(VRController_Update, &VRController::Update, void, GlobalNamespac
     }
 }
 
-
-MAKE_HOOK_MATCH(SpawnNote, &BeatmapObjectSpawnController::SpawnBasicNote, void, BeatmapObjectSpawnController* self, GlobalNamespace::NoteData* noteData, float cutDirectionAngleOffset) {
+MAKE_HOOK_MATCH(SpawnNote, &BeatmapObjectSpawnController::HandleNoteDataCallback, void, BeatmapObjectSpawnController *self, GlobalNamespace::NoteData *noteData)
+{
     if (getPluginConfig().NoTricksWhileNotes.GetValue())
         objectCount++;
 //    getLogger().debug("Object count note increase %d", objectCount);
 
-    SpawnNote(self, noteData, cutDirectionAngleOffset);
-}
-
-MAKE_HOOK_MATCH(SpawnBomb, &BeatmapObjectSpawnController::SpawnBombNote, void, BeatmapObjectSpawnController* self, GlobalNamespace::NoteData* noteData) {
-    if (getPluginConfig().NoTricksWhileNotes.GetValue() )
-        objectCount++;
-//    getLogger().debug("Object count bomb increase %d", objectCount);
-
-    SpawnBomb(self, noteData);
+    SpawnNote(self, noteData);
 }
 
 MAKE_HOOK_MATCH(NoteCut, &BeatmapObjectManager::HandleNoteControllerNoteWasCut, void, BeatmapObjectManager* self, GlobalNamespace::NoteController* noteController, ByRef<GlobalNamespace::NoteCutInfo> noteCutInfo) {
@@ -559,7 +551,6 @@ extern "C" void load() {
 
 
     INSTALL_HOOK(getLogger(), SpawnNote);
-    INSTALL_HOOK(getLogger(), SpawnBomb);
     INSTALL_HOOK(getLogger(), NoteMissed);
     INSTALL_HOOK(getLogger(), NoteCut);
 
