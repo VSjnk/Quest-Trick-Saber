@@ -267,7 +267,7 @@ class SaberTrickModel {
             }
         } else {
             getLogger().debug("Coloring the %i saber!", saberScript->saberType->saberType.value);
-            static auto SetColor = FPtrWrapper<static_cast<void (UnityEngine::MaterialPropertyBlock::*)(Il2CppString *,
+            static auto SetColor = FPtrWrapper<static_cast<void (UnityEngine::MaterialPropertyBlock::*)(StringW,
                     UnityEngine::Color)>(&UnityEngine::MaterialPropertyBlock::SetColor)>::get();
             static auto SetPropertyBlock = FPtrWrapper<static_cast<void (UnityEngine::Renderer::*)(
                     UnityEngine::MaterialPropertyBlock *)>(&UnityEngine::Renderer::SetPropertyBlock)>::get();

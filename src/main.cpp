@@ -181,8 +181,8 @@ MAKE_HOOK_MATCH(SceneManager_SetActiveScene, &UnityEngine::SceneManagement::Scen
 
 MAKE_HOOK_MATCH(SceneManager_Internal_SceneLoaded, &UnityEngine::SceneManagement::SceneManager::Internal_SceneLoaded, void, UnityEngine::SceneManagement::Scene scene, UnityEngine::SceneManagement::LoadSceneMode mode) {
     getLogger().info("SceneManager_Internal_SceneLoaded");
-    if (auto* nameOpt = scene.get_name()) {
-        auto* name = nameOpt;
+    if (auto nameOpt = scene.get_name()) {
+        auto name = nameOpt;
         auto str = to_utf8(csstrtostr(name));
         getLogger().debug("Scene name internal: %s", str.c_str());
     }
