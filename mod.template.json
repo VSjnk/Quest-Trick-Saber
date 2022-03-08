@@ -6,7 +6,7 @@
   "porter": "FernTheDev, Michael Zoller",
   "version": "${version}",
   "packageId": "com.beatgames.beatsaber",
-  "packageVersion": "1.19.0",
+  "packageVersion": "1.20.0",
   "description": "Do tricks and stuff",
   "modFiles": [],
   "libraryFiles": [],
