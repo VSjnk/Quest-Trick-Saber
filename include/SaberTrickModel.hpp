@@ -157,7 +157,7 @@ class SaberTrickModel {
 
                 if (callback) {
                     getLogger().debug("Registering to chroma!");
-                    UnorderedEventCallback<int, GlobalNamespace::SaberModelController *, Sombrero::FastColor> &refCallback = *callback;
+                    UnorderedEventCallback<int, GlobalNamespace::SaberModelController *, Sombrero::FastColor const&> &refCallback = *callback;
                     refCallback += {&SaberTrickModel::MarkRefreshColor, this};
                 }
             }
@@ -174,7 +174,7 @@ class SaberTrickModel {
         auto callback = Chroma::SaberAPI::getSaberChangedColorCallbackSafe();
 
         if (callback) {
-            UnorderedEventCallback<int, GlobalNamespace::SaberModelController*, Sombrero::FastColor>& refCallback = *callback;
+            UnorderedEventCallback<int, GlobalNamespace::SaberModelController*, Sombrero::FastColor const&>& refCallback = *callback;
             refCallback -= {&SaberTrickModel::MarkRefreshColor, this};
         }
     }
@@ -236,7 +236,7 @@ class SaberTrickModel {
     template<auto val>
     using FPtrWrapper = il2cpp_utils::il2cpp_type_check::FPtrWrapper<val>;
 
-    void MarkRefreshColor(int saberType, GlobalNamespace::SaberModelController* model, Sombrero::FastColor color) {
+    void MarkRefreshColor(int saberType, GlobalNamespace::SaberModelController* model, Sombrero::FastColor const& color) {
         if (saberType != (int) this->saberScript->saberType->saberType || model != origSaberModelController) {
             getLogger().error("Coloring the wrong saber colored: %p and original %p ", model, origSaberModelController);
             return;
