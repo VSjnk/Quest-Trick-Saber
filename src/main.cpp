@@ -507,7 +507,6 @@ void DidActivate(HMUI::ViewController* self, bool firstActivation, bool addedToH
             ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().TriggerAction),
             ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ButtonOneAction),
             ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ButtonTwoAction),
-            ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ButtonOneAction),
             ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().GripAction),
             ConfigUtilsEnumDropdownSetting<TrickAction, TRICK_ACTION_COUNT>(getPluginConfig().ThumbstickAction),
             TitleSectText("Misc"),
