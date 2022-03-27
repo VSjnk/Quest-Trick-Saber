@@ -4,7 +4,7 @@
   "id": "TrickSaber",
   "author": "ToniMacaroni",
   "porter": "FernTheDev, Michael Zoller",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "packageId": "com.beatgames.beatsaber",
   "packageVersion": "1.20.0",
   "description": "Do tricks and stuff",
@@ -14,7 +14,7 @@
   ],
   "libraryFiles": [
     "libbs-utils.so",
-    "libbeatsaber-hook_3_6_8.so"
+    "libbeatsaber-hook_3_7_4.so"
   ],
   "fileCopies": [],
   "copyExtensions": []
