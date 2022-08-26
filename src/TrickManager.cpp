@@ -34,7 +34,7 @@ static UnityEngine::AudioSource* _audioSource;
 static function_ptr_t<void, Il2CppObject*> RigidbodySleep;
 static bool _gamePaused;
 
-static SafePtr<HapticPresetSO> hapticFeedbackThrowReturn;
+static SafePtrUnity<HapticPresetSO> hapticFeedbackThrowReturn;
 
 static const MethodInfo* VRController_get_transform = nullptr;
 static std::unordered_map<GlobalNamespace::VRController*, UnityEngine::Transform*> fakeTransforms;

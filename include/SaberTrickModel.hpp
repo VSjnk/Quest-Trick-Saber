@@ -38,9 +38,9 @@
 
 #include "chroma/shared/SaberAPI.hpp"
 
-#include "qosmetics-api/shared/SaberAPI.hpp"
-#include "qosmetics-api/shared/Components/TrailHelper.hpp"
-#include "qosmetics-api/shared/Components/ColorComponent.hpp"
+#include "qosmetics-sabers/shared/API.hpp"
+#include "qosmetics-sabers/shared/TrailHandler.hpp"
+#include "qosmetics-sabers/shared/WhackerColorHandler.hpp"
 
 #include "System/Collections/Generic/List_1.hpp"
 #include <string>
@@ -52,7 +52,7 @@ class SaberTrickModel {
     UnityEngine::Rigidbody* Rigidbody = nullptr;
     UnityEngine::GameObject* SaberGO;  // GameObject
     GlobalNamespace::Saber* saberScript;
-    SafePtr<GlobalNamespace::Saber> trickSaberScript;
+    SafePtrUnity<GlobalNamespace::Saber> trickSaberScript;
 
     GlobalNamespace::SaberMovementData* trailMovementData;
 
@@ -112,7 +112,7 @@ class SaberTrickModel {
             TrickModel = SaberGO;
             SetupRigidbody(Rigidbody, OriginalSaberModel);
         } else {
-            auto createCustom = Qosmetics::SaberAPI::GetDummySaber(saberScript->saberType->saberType);
+            auto createCustom = Qosmetics::Sabers::API::GetDummySaber(saberScript->saberType->saberType);
 
             // If qosmetics is not found or if it is default saber, create custom model ourselves
             if (!createCustom || !createCustom.value()) {
