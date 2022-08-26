@@ -32,22 +32,22 @@
     },
     {
       "id": "codegen",
-      "versionRange": "^0.22.0",
+      "versionRange": "^0.25.0",
       "additionalData": {
         "includeQmod": false
       }
     },
     {
       "id": "questui",
-      "versionRange": "^0.13.0",
+      "versionRange": "^0.16.0",
       "additionalData": {
-        "private": true,
-        "includeQmod": false
+        "includeQmod": false,
+        "private": true
       }
     },
     {
       "id": "config-utils",
-      "versionRange": "^0.7.0",
+      "versionRange": "^0.8.0",
       "additionalData": {
         "private": true
       }
@@ -65,19 +65,11 @@
       }
     },
     {
-      "id": "qosmetics-api",
-      "versionRange": "*",
-      "additionalData": {
-        "private": true,
-        "includeQmod": false
-      }
-    },
-    {
       "id": "chroma",
       "versionRange": "*",
       "additionalData": {
-        "private": true,
-        "includeQmod": false
+        "includeQmod": false,
+        "private": true
       }
     },
     {
@@ -95,6 +87,11 @@
     {
       "id": "modloader",
       "versionRange": "^1.2.3",
+      "additionalData": {}
+    },
+    {
+      "id": "qosmetics-sabers",
+      "versionRange": "^0.1.0",
       "additionalData": {}
     }
   ],
